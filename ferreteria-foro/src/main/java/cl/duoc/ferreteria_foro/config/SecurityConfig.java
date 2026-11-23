@@ -44,15 +44,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/refresh"
-                        ).permitAll()
-                        .anyRequest().denyAll()
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/foro/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/foro/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/foro/**").authenticated()
+                        .anyRequest().denyAll())
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
