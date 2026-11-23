@@ -1,5 +1,6 @@
-package cl.duoc.ferreteria_auth.security;
+package cl.duoc.ferreteria_foro.config;
 
+import cl.duoc.ferreteria_foro.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,10 +51,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/foro/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/foro/**").authenticated()
                         .anyRequest().denyAll())
-                )
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
