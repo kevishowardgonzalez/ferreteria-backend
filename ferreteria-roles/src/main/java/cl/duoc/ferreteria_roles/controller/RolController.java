@@ -1,7 +1,7 @@
 package cl.duoc.ferreteria_roles.controller;
 
 import cl.duoc.ferreteria_roles.dto.RolRequest;
-import cl.duoc.ferreteria_roles.model.RolEntity;
+import cl.duoc.ferreteria_roles.model.Rol;
 import cl.duoc.ferreteria_roles.service.RolService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,25 +25,25 @@ public class RolController {
 
     @Operation(summary = "Listar roles")
     @GetMapping
-    public List<RolEntity> listar() {
+    public List<Rol> listar() {
         return service.listar();
     }
 
     @Operation(summary = "Obtener rol por ID")
     @GetMapping("/{id}")
-    public RolEntity buscar(@PathVariable Long id) {
+    public Rol buscar(@PathVariable Long id) {
         return service.buscar(id);
     }
 
     @Operation(summary = "Crear rol")
     @PostMapping
-    public ResponseEntity<RolEntity> crear(@Valid @RequestBody RolRequest request) {
+    public ResponseEntity<Rol> crear(@Valid @RequestBody RolRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(request));
     }
 
     @Operation(summary = "Actualizar rol")
     @PutMapping("/{id}")
-    public RolEntity actualizar(@PathVariable Long id, @Valid @RequestBody RolRequest request) {
+    public Rol actualizar(@PathVariable Long id, @Valid @RequestBody RolRequest request) {
         return service.actualizar(id, request);
     }
 

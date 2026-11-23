@@ -1,0 +1,23 @@
+package cl.duoc.ferreteria_inventario.dto;
+
+import jakarta.validation.constraints.*;
+import lombok.Data;
+
+@Data
+public class InventarioRequest {
+    @NotNull(message = "El ID de producto es obligatorio")
+    private Long productoId;
+
+    @NotBlank(message = "El SKU es obligatorio")
+    private String productoSku;
+
+    @NotBlank(message = "El nombre del producto es obligatorio")
+    private String productoNombre;
+
+    @NotNull(message = "El stock inicial es obligatorio")
+    @Min(value = 0, message = "El stock no puede ser negativo")
+    private Integer stockActual;
+
+    @Min(value = 0, message = "El stock mínimo no puede ser negativo")
+    private Integer stockMinimo = 5;
+}
