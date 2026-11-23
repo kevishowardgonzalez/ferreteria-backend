@@ -281,7 +281,7 @@ Endpoints principales:
 
 | Método | Endpoint |
 |---|---|
-| POST | `/api/v1/auth/register` |
+| POST | `/api/v1/auth/registro` |
 | POST | `/api/v1/auth/login` |
 | POST | `/api/v1/auth/refresh` |
 
