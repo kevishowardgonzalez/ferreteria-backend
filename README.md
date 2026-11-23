@@ -1,6 +1,6 @@
 # 🔨 Ferretería Los Maestros | Backend
 
-Plataforma de comercio electrónico especializada en herramientas, materiales de construcción, gasfitería, electricidad y artículos de ferretería general.
+Sistema web de una ferretería que permite gestionar productos, categorías, usuarios, ventas, inventario, carrito de compras, contacto y un foro para los clientes.
 
 **Desarrollo Fullstack II (DSY1104) | Ingeniería en Informática | Duoc UC**
 
@@ -16,50 +16,46 @@ Plataforma de comercio electrónico especializada en herramientas, materiales de
 
 ---
 
-## 1. Descripción del proyecto
+## 1. ¿De qué trata el proyecto?
 
-**Ferretería Los Maestros** es una empresa familiar fundada en La Serena, Región de Coquimbo, orientada a la comercialización de herramientas y materiales de construcción para contratistas, maestros de obra y clientes particulares, complementada con un foro comunitario y canales de atención al cliente.
+**Ferretería Los Maestros** es un proyecto basado en una ferretería familiar ubicada en La Serena, Región de Coquimbo.
 
-Este repositorio concentra los servicios backend de la plataforma, diseñados mediante una arquitectura de **10 microservicios independientes** desarrollados con **Spring Boot**.
+La idea es crear una página web donde los clientes puedan revisar productos, realizar compras, consultar su historial y participar en un foro. También cuenta con funciones para vendedores y administradores.
 
-La solución contempla la implementación de API REST, persistencia de datos independiente por dominio, lógica de negocio, validación de información, autenticación mediante JSON Web Tokens (JWT), autorización basada en roles (`ADMIN`, `VENDEDOR`, `CLIENTE`) y documentación de endpoints mediante Swagger / OpenAPI.
+El backend está desarrollado con **Java y Spring Boot**, utilizando una estructura de 10 microservicios. Cada uno se encarga de una parte diferente del sistema.
 
-El frontend se desarrolla de forma independiente utilizando React y Vite, estableciendo comunicación con los servicios backend mediante solicitudes HTTP e intercambio de información en formato JSON.
-
-El proyecto se desarrolla de manera incremental, incorporando progresivamente los microservicios, sus pruebas unitarias y la integración con el frontend.
+El frontend está desarrollado con **React y Vite**, y se comunica con los servicios backend mediante API REST.
 
 ---
 
-## 2. Objetivos del proyecto
+## 2. Objetivos
 
 ### Objetivo general
 
-Desarrollar una plataforma web Full Stack que permita gestionar las operaciones comerciales y administrativas de **Ferretería Los Maestros** mediante una arquitectura de microservicios modular, segura, escalable y mantenible.
+Desarrollar una página web para Ferretería Los Maestros que permita administrar sus productos, usuarios y ventas, además de entregar herramientas para que los clientes puedan realizar sus compras.
 
 ### Objetivos específicos
 
-- Implementar 10 servicios backend independientes utilizando Spring Boot.
-- Diseñar modelos de datos relacionados con los requerimientos funcionales del negocio.
-- Gestionar la persistencia de información mediante bases de datos relacionales independientes.
-- Implementar operaciones CRUD mediante API REST.
-- Documentar los endpoints utilizando Swagger y OpenAPI.
-- Integrar los servicios backend con el frontend desarrollado en React.
-- Implementar autenticación mediante JWT con emisión centralizada y validación distribuida.
-- Establecer mecanismos de autorización basados en roles y permisos.
-- Gestionar la persistencia de sesiones de usuario de forma *stateless*.
-- Validar la información ingresada mediante formularios y solicitudes HTTP.
-- Aplicar buenas prácticas de desarrollo, seguridad y control de versiones.
-- Preparar la aplicación para su despliegue en infraestructura cloud.
+- Crear 10 microservicios utilizando Spring Boot.
+- Crear y conectar las bases de datos de cada servicio.
+- Implementar operaciones para crear, consultar, modificar y eliminar información.
+- Conectar el backend con el frontend desarrollado en React.
+- Implementar inicio de sesión y registro de usuarios.
+- Utilizar JWT para mantener la autenticación.
+- Manejar diferentes permisos según el tipo de usuario.
+- Documentar las API mediante Swagger.
+- Realizar pruebas de funcionamiento.
+- Preparar el proyecto para su despliegue en AWS.
 
 ---
 
 ## 3. Arquitectura del sistema
 
-**Ferretería Los Maestros** contempla una arquitectura compuesta por **diez microservicios Spring Boot**, organizados dentro de un repositorio backend común (`ferreteria-backend`).
+El proyecto está organizado en **10 microservicios independientes**, cada uno con su propia carpeta, configuración y base de datos.
 
-Cada microservicio dispone de su propio proyecto Maven, configuración, responsabilidades funcionales y esquema de base de datos independiente (*Database per Service*).
+Todos se encuentran dentro del repositorio `ferreteria-backend`.
 
-### Diagrama general de arquitectura
+### Diagrama general
 
 ```mermaid
 flowchart TD
@@ -87,54 +83,45 @@ flowchart TD
     J --> DJ[(BD ferreteria_contacto)]
     K --> DK[(BD ferreteria_foro)]
 
-    H -. Consultas de productos .-> E
-    H -. Gestión de existencias .-> G
+    H -. Consulta productos .-> E
+    H -. Actualiza existencias .-> G
 ```
 
-El diagrama representa la arquitectura objetivo del proyecto. Las comunicaciones entre microservicios serán verificadas durante la integración.
+### Características principales
 
-### Principios de arquitectura
-
-- Separación de responsabilidades por dominio de negocio.
-- Independencia funcional de los microservicios.
-- Comunicación mediante API REST.
-- Persistencia independiente por dominio (Database per Service).
-- Modularidad y mantenibilidad.
-- Validación de reglas de negocio.
-- Centralización del manejo de excepciones (`GlobalExceptionHandler`).
-- Seguridad mediante autenticación JWT y autorización RBAC.
-- Externalización de configuraciones sensibles.
-- Preparación para despliegue independiente.
+- Cada microservicio tiene una función específica.
+- Los servicios se comunican mediante API REST.
+- Cada servicio utiliza su propia base de datos.
+- El acceso a las funciones depende del rol del usuario.
+- La autenticación se realiza mediante JWT.
 
 ---
 
-## 4. Microservicios
+## 4. Microservicios del proyecto
 
-La plataforma contempla los siguientes diez microservicios:
+El backend cuenta con los siguientes 10 servicios:
 
-| Microservicio | Carpeta | Puerto | Base de datos prevista | Responsabilidad |
-|---|---|---:|---|---|
-| Auth Service | `ferreteria-auth` | 8081 | `ferreteria_auth` | Autenticación, registro inicial, generación y renovación de JWT. |
-| Usuarios Service | `ferreteria-usuarios` | 8082 | `ferreteria_usuarios` | Registro, perfiles y administración de usuarios. |
-| Roles Service | `ferreteria-roles` | 8083 | `ferreteria_roles` | Administración y asignación de roles del sistema. |
-| Categorías Service | `ferreteria-categorias` | 8084 | `ferreteria_categorias` | Organización y clasificación del catálogo de productos. |
-| Productos Service | `ferreteria-productos` | 8085 | `ferreteria_productos` | Administración del catálogo de herramientas y materiales. |
-| Inventario Service | `ferreteria-inventario` | 8086 | `ferreteria_inventario` | Control de stock, movimientos y disponibilidad. |
-| Boletas Service | `ferreteria-boletas` | 8087 | `ferreteria_boletas` | Gestión de ventas, boletas y detalles de compra. |
-| Carrito Service | `ferreteria-carrito` | 8088 | `ferreteria_carrito` | Gestión persistente del carro de compras por usuario. |
-| Contacto Service | `ferreteria-contacto` | 8089 | `ferreteria_contacto` | Recepción y administración de mensajes de contacto. |
-| Foro Service | `ferreteria-foro` | 8090 | `ferreteria_foro` | Gestión de publicaciones comunitarias y comentarios. |
+| Microservicio | Puerto | Función |
+|---|---:|---|
+| `ferreteria-auth` | 8081 | Registro, inicio de sesión y generación de tokens JWT. |
+| `ferreteria-usuarios` | 8082 | Administración de usuarios. |
+| `ferreteria-roles` | 8083 | Administración de roles. |
+| `ferreteria-categorias` | 8084 | Creación y administración de categorías. |
+| `ferreteria-productos` | 8085 | Administración del catálogo de productos. |
+| `ferreteria-inventario` | 8086 | Control de stock y existencias. |
+| `ferreteria-boletas` | 8087 | Registro de ventas y boletas. |
+| `ferreteria-carrito` | 8088 | Administración del carrito de compras. |
+| `ferreteria-contacto` | 8089 | Recepción y administración de mensajes. |
+| `ferreteria-foro` | 8090 | Publicaciones y comentarios de usuarios. |
 
-### Puertos complementarios
+### Otros puertos utilizados
 
 | Componente | Puerto |
 |---|---:|
 | Frontend React + Vite | 5173 |
 | MySQL / MariaDB | 3306 |
-| Servidor HTTP Nginx | 80 |
-| Servidor HTTPS Nginx | 443 |
-
-Los nombres y configuraciones de los servicios pendientes podrán ajustarse durante la integración definitiva.
+| Nginx HTTP | 80 |
+| Nginx HTTPS | 443 |
 
 ---
 
@@ -142,96 +129,81 @@ Los nombres y configuraciones de los servicios pendientes podrán ajustarse dura
 
 ### Backend
 
-| Tecnología | Propósito |
-|---|---|
-| Java 17+ | Lenguaje principal de programación. |
-| Spring Boot | Desarrollo y configuración de microservicios. |
-| Spring Web MVC | Implementación de API REST. |
-| Spring Data JPA | Acceso y persistencia de datos. |
-| Hibernate | Mapeo objeto-relacional (ORM). |
-| Spring Security | Seguridad y control de acceso. |
-| JWT | Autenticación basada en tokens. |
-| JJWT | Generación y validación de tokens JWT. |
-| Jakarta Validation | Validación de datos de entrada. |
-| Lombok | Reducción de código repetitivo. |
-| Maven | Gestión de dependencias y compilación. |
-| Swagger / OpenAPI | Documentación de API REST. |
+- Java 17 o superior.
+- Spring Boot.
+- Spring Web.
+- Spring Data JPA.
+- Hibernate.
+- Spring Security.
+- JWT y JJWT.
+- Jakarta Validation.
+- Lombok.
+- Maven.
 
 ### Frontend
 
 - React.
 - Vite.
-- JavaScript (ES6+).
+- JavaScript.
 - HTML5.
 - CSS3.
-- Bootstrap / React-Bootstrap.
+- Bootstrap.
 - React Router.
 - Fetch API.
 
-### Base de datos
+### Bases de datos
 
 - MySQL.
 - MariaDB.
 - MySQL Connector/J.
 - phpMyAdmin.
-- XAMPP para el entorno de desarrollo local.
 
-### Herramientas de desarrollo
+### Herramientas
 
-- Visual Studio Code / IntelliJ IDEA.
-- Spring Initializr.
+- Visual Studio Code.
+- IntelliJ IDEA.
 - Postman.
-- Swagger UI.
+- Swagger.
 - Git.
 - GitHub.
-- Maven Wrapper.
+- Spring Initializr.
 
-### Infraestructura prevista
+### Despliegue
 
 - Amazon Web Services (AWS).
 - Amazon EC2.
-- Linux Ubuntu.
+- Ubuntu Linux.
 - Nginx.
 - MariaDB.
-- systemd.
-
-Las versiones específicas de las dependencias se encuentran definidas en el archivo `pom.xml` de cada microservicio.
 
 ---
 
 ## 6. Estructura del repositorio
 
-La estructura del repositorio backend es la siguiente:
+La organización del backend es la siguiente:
 
 ```text
 ferreteria-backend/
 │
 ├── ferreteria-auth/
-│
 ├── ferreteria-usuarios/
-│
 ├── ferreteria-roles/
-│
 ├── ferreteria-categorias/
-│
 ├── ferreteria-productos/
-│
 ├── ferreteria-inventario/
-│
 ├── ferreteria-boletas/
-│
 ├── ferreteria-carrito/
-│
 ├── ferreteria-contacto/
-│
 ├── ferreteria-foro/
 │
 └── README.md
 ```
 
-Cada microservicio constituye un proyecto Spring Boot independiente.
+Cada carpeta contiene un proyecto Spring Boot independiente.
 
-### Estructura interna de referencia
+### Estructura interna de un microservicio
+
+Como ejemplo, se muestra la organización de `ferreteria-contacto`:
 
 ```text
 ferreteria-contacto/
@@ -265,19 +237,20 @@ ferreteria-contacto/
 └── pom.xml
 ```
 
-### Arquitectura por capas
+### ¿Para qué sirve cada carpeta?
 
-| Capa | Responsabilidad |
+| Carpeta | Función |
 |---|---|
-| Model | Definición de entidades y atributos del dominio. |
-| Repository | Acceso y persistencia de información. |
-| Service | Implementación de lógica y reglas de negocio. |
-| Controller | Exposición de endpoints REST. |
-| Exception | Gestión centralizada de errores y excepciones (`GlobalExceptionHandler`). |
-| Config / Security | Configuración de seguridad, filtros JWT, CORS y Swagger. |
-| DTO | Transferencia controlada de información y validaciones de entrada. |
+| `model` | Contiene las entidades del proyecto. |
+| `repository` | Permite trabajar con la base de datos. |
+| `service` | Contiene la lógica del sistema. |
+| `controller` | Recibe las solicitudes HTTP. |
+| `dto` | Contiene los objetos utilizados para enviar y recibir datos. |
+| `exception` | Maneja los errores del sistema. |
+| `config` | Contiene configuraciones generales. |
+| `security` | Maneja la seguridad y validación de JWT. |
 
-### Flujo de procesamiento
+### Flujo de funcionamiento
 
 ```mermaid
 flowchart LR
@@ -285,138 +258,129 @@ flowchart LR
     C --> S[Service]
     S --> R[Repository]
     R --> D[(Base de datos)]
-    D --> R
-    R --> S
-    S --> C
-    C --> F
 ```
 
 ---
 
-## 7. API REST y funcionalidades
+## 7. Funcionalidades de los microservicios
 
-Los microservicios utilizan el protocolo HTTP y el formato JSON para intercambiar información.
+### 7.1. ferreteria-auth
 
-### Métodos HTTP
+Se encarga del registro e inicio de sesión de los usuarios.
 
-| Método | Operación |
+Funciones principales:
+
+- Registro de usuarios.
+- Inicio de sesión.
+- Validación de credenciales.
+- Generación de JWT.
+- Renovación de tokens.
+- Manejo de roles.
+
+Endpoints principales:
+
+| Método | Endpoint |
 |---|---|
-| GET | Consultar información. |
-| POST | Crear nuevos registros. |
-| PUT | Actualizar registros existentes. |
-| DELETE | Eliminar registros cuando las reglas del negocio lo permitan. |
+| POST | `/api/v1/auth/register` |
+| POST | `/api/v1/auth/login` |
+| POST | `/api/v1/auth/refresh` |
 
-### Recursos principales
+### 7.2. ferreteria-usuarios
 
-| Microservicio | Ruta base |
-|---|---|
-| Auth | `/api/v1/auth` |
-| Usuarios | `/api/v1/usuarios` |
-| Roles | `/api/v1/roles` |
-| Categorías | `/api/v1/categorias` |
-| Productos | `/api/v1/productos` |
-| Inventario | `/api/v1/inventario` |
-| Boletas | `/api/v1/boletas` |
-| Carrito | `/api/v1/carrito` |
-| Contacto | `/api/v1/contacto` |
-| Foro | `/api/v1/foro` |
+Permite administrar los usuarios registrados.
 
-### 7.1. Auth Service (`ferreteria-auth`)
+Funciones principales:
 
-Responsable de la autenticación y seguridad de los usuarios.
+- Consultar usuarios.
+- Buscar usuarios por ID.
+- Crear y modificar usuarios.
+- Eliminar usuarios.
+- Cambiar el estado de las cuentas.
 
-**Funcionalidades implementadas:**
+### 7.3. ferreteria-roles
 
-- Inicio de sesión (`/api/v1/auth/login`).
-- Registro de nuevos usuarios (`/api/v1/auth/register`).
-- Renovación segura de tokens (`/api/v1/auth/refresh`).
-- Validación de credenciales con cifrado BCrypt.
-- Generación de tokens JWT con firma HMAC-SHA256 e identificación de roles (`ADMIN`, `VENDEDOR`, `CLIENTE`).
+Permite administrar los roles disponibles en el sistema.
 
-### 7.2. Usuarios Service (`ferreteria-usuarios`)
+Funciones principales:
 
-Responsable de la administración de usuarios de la plataforma.
+- Crear roles.
+- Consultar roles.
+- Modificar roles.
+- Eliminar roles de forma controlada.
 
-**Funcionalidades implementadas:**
+### 7.4. ferreteria-categorias
 
-- Consulta del listado completo de usuarios (ADMIN).
-- Consulta de usuario por ID (ADMIN).
-- Creación y edición de cuentas de usuario (ADMIN).
-- Eliminación y cambio de estado de usuarios (ADMIN).
+Se encarga de organizar los productos de la ferretería.
 
-### 7.3. Roles Service (`ferreteria-roles`)
+Funciones principales:
 
-Responsable de la administración de roles del sistema.
+- Consultar categorías.
+- Crear categorías.
+- Editar categorías.
+- Eliminar categorías.
 
-**Funcionalidades implementadas:**
+### 7.5. ferreteria-productos
 
-- Creación y consulta de roles disponibles (ADMIN).
-- Actualización y eliminación controlada de roles (ADMIN).
+Administra los productos disponibles en la tienda.
 
-### 7.4. Categorías Service (`ferreteria-categorias`)
+Funciones principales:
 
-Responsable de organizar y clasificar los productos de la ferretería.
+- Consultar el catálogo.
+- Consultar el detalle de productos.
+- Registrar nuevos productos.
+- Modificar productos.
+- Eliminar productos.
+- Asociar productos con categorías.
 
-**Funcionalidades implementadas:**
+### 7.6. ferreteria-inventario
 
-- Consulta pública de categorías (`GET /api/v1/categorias`).
-- Creación, edición y eliminación de categorías (ADMIN, VENDEDOR).
+Permite controlar las existencias de los productos.
 
-### 7.5. Productos Service (`ferreteria-productos`)
+Funciones principales:
 
-Responsable de administrar el catálogo comercial de Ferretería Los Maestros.
+- Consultar stock.
+- Registrar existencias.
+- Actualizar cantidades.
+- Definir stock mínimo.
+- Revisar disponibilidad de productos.
 
-**Funcionalidades implementadas:**
+### 7.7. ferreteria-boletas
 
-- Consulta pública del catálogo y detalle de productos (`GET /api/v1/productos`).
-- Registro y actualización de productos (ADMIN, VENDEDOR).
-- Asociación por identificador con categorías (`categoriaId`).
-- Eliminación controlada de productos (ADMIN, VENDEDOR).
+Se encarga de registrar las ventas y generar las boletas.
 
-### 7.6. Inventario Service (`ferreteria-inventario`)
+Funciones principales:
 
-Responsable del control de existencias por producto.
+- Registrar compras.
+- Generar boletas.
+- Consultar historial de compras.
+- Consultar ventas.
+- Calcular subtotales y totales.
 
-**Funcionalidades implementadas:**
+### 7.8. ferreteria-carrito
 
-- Consulta pública de stock disponible por producto (`GET /api/v1/inventario/producto/{id}`).
-- Registro y ajuste de existencias y stock mínimo (ADMIN, VENDEDOR).
-- Validación de disponibilidad para ventas.
+Administra el carrito de compras de cada usuario.
 
-### 7.7. Boletas Service (`ferreteria-boletas`)
+Funciones principales:
 
-Responsable de gestionar las operaciones de venta y comprobantes de compra.
+- Consultar carrito.
+- Agregar productos.
+- Modificar cantidades.
+- Eliminar productos.
+- Vaciar el carrito después de completar una compra.
 
-**Funcionalidades implementadas:**
+### 7.9. ferreteria-contacto
 
-- Generación de boletas con detalle de ítems para usuarios autenticados.
-- Consulta de historial de compras por cliente autenticado.
-- Administración y consulta general de boletas (ADMIN, VENDEDOR).
-- Cálculo automático de subtotales y montos totales.
-
-### 7.8. Carrito Service (`ferreteria-carrito`)
-
-Responsable de gestionar el carro de compras persistente de cada usuario autenticado.
-
-**Funcionalidades implementadas:**
-
-- Consulta del carrito activo del usuario autenticado.
-- Agregar productos y actualizar cantidades.
-- Eliminar ítems o vaciar el carrito tras completar la compra.
-
-### 7.9. Contacto Service (`ferreteria-contacto`)
-
-Responsable de recibir y administrar los mensajes enviados mediante el formulario de contacto.
+Recibe y administra los mensajes enviados desde el formulario de contacto.
 
 **Endpoints implementados:**
 
-| Método | Endpoint | Acceso | Respuesta |
-|---|---|---|---|
-| GET | `/api/v1/contacto` | ADMIN / VENDEDOR | 200 OK |
-| GET | `/api/v1/contacto/{id}` | ADMIN / VENDEDOR | 200 OK |
-| POST | `/api/v1/contacto` | Público | 201 Created |
-| PUT | `/api/v1/contacto/{id}/responder` | ADMIN / VENDEDOR | 200 OK |
-| DELETE | `/api/v1/contacto/{id}` | ADMIN | 204 No Content |
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/api/v1/contacto` | ADMIN / VENDEDOR |
+| GET | `/api/v1/contacto/{id}` | ADMIN / VENDEDOR |
+| POST | `/api/v1/contacto` | Público |
+| PUT | `/api/v1/contacto/{id}/responder` | ADMIN / VENDEDOR |
+| DELETE | `/api/v1/contacto/{id}` | ADMIN |
 
 **Ejemplo de solicitud POST:**
 
@@ -429,102 +393,128 @@ Responsable de recibir y administrar los mensajes enviados mediante el formulari
 }
 ```
 
-### 7.10. Foro Service (`ferreteria-foro`)
+### 7.10. ferreteria-foro
 
-Responsable de administrar las publicaciones comunitarias y consultas técnicas entre usuarios.
+Permite que los usuarios compartan publicaciones y comentarios.
 
-**Funcionalidades implementadas:**
+Funciones principales:
 
-- Consulta pública de publicaciones y comentarios (`GET /api/v1/foro`).
-- Creación de publicaciones y comentarios para usuarios autenticados (`POST /api/v1/foro`).
-- Moderación y eliminación de publicaciones (`DELETE /api/v1/foro/{id}` — solo ADMIN).
+- Consultar publicaciones.
+- Crear publicaciones.
+- Agregar comentarios.
+- Consultar comentarios.
+- Eliminar publicaciones (ADMIN).
 
 ---
 
-## 8. Persistencia y bases de datos
+## 8. Bases de datos
 
-La plataforma utiliza bases de datos relacionales MySQL / MariaDB para garantizar la persistencia y organización de la información.
+El proyecto utiliza MySQL y MariaDB para guardar la información.
 
-Cada microservicio contempla un esquema independiente (*Database per Service*), permitiendo separar los datos según su dominio funcional.
+Cada microservicio tiene su propia base de datos, separando la información según la función que cumple dentro del sistema.
 
-La persistencia se implementa mediante Spring Data JPA e Hibernate.
+### Bases de datos utilizadas
 
-### Principios de persistencia
+| Microservicio | Base de datos |
+|---|---|
+| ferreteria-auth | `ferreteria_auth` |
+| ferreteria-usuarios | `ferreteria_usuarios` |
+| ferreteria-roles | `ferreteria_roles` |
+| ferreteria-categorias | `ferreteria_categorias` |
+| ferreteria-productos | `ferreteria_productos` |
+| ferreteria-inventario | `ferreteria_inventario` |
+| ferreteria-boletas | `ferreteria_boletas` |
+| ferreteria-carrito | `ferreteria_carrito` |
+| ferreteria-contacto | `ferreteria_contacto` |
+| ferreteria-foro | `ferreteria_foro` |
 
-- Independencia de esquemas (`ferreteria_auth`, `ferreteria_usuarios`, `ferreteria_roles`, `ferreteria_categorias`, `ferreteria_productos`, `ferreteria_inventario`, `ferreteria_boletas`, `ferreteria_carrito`, `ferreteria_contacto`, `ferreteria_foro`).
-- Integridad de datos y normalización de modelos.
-- Validación de restricciones mediante Jakarta Validation.
-- Persistencia de registros después de reiniciar los servicios.
-- Desacoplamiento total entre tablas de distintos microservicios (referencias mediante IDs numéricos o correo del usuario autenticado).
+Para trabajar con las bases de datos se utilizan Spring Data JPA e Hibernate.
 
 ---
 
 ## 9. Seguridad y autenticación
 
-La arquitectura de seguridad contempla Spring Security con política `STATELESS` y autenticación basada en JSON Web Tokens (JWT).
+Para proteger el sistema se utiliza Spring Security junto con JWT.
 
-### Roles principales
+Los usuarios tienen diferentes permisos dependiendo de su rol.
 
-| Rol | Descripción |
+### Roles del sistema
+
+| Rol | Permisos |
 |---|---|
-| ADMIN | Usuario con permisos administrativos totales sobre todos los módulos. |
-| VENDEDOR | Personal de tienda con permisos de gestión de catálogo, inventario, boletas y contacto. |
-| CLIENTE | Usuario autenticado con acceso a carrito, boletas propias y participación en el foro. |
-| Público | Visitante sin autenticación (consulta de catálogo, stock, foro y envío de contacto). |
+| ADMIN | Puede administrar todos los módulos del sistema. |
+| VENDEDOR | Puede gestionar productos, categorías, inventario, boletas y mensajes de contacto. |
+| CLIENTE | Puede utilizar el carrito, consultar sus compras y participar en el foro. |
+| Público | Puede consultar información pública y enviar mensajes de contacto. |
 
-### Flujo de autenticación
+### ¿Cómo funciona el inicio de sesión?
+
+1. El usuario ingresa su correo y contraseña.
+2. El frontend envía los datos a `ferreteria-auth`.
+3. El servicio valida las credenciales.
+4. Si los datos son correctos, genera los tokens JWT.
+5. El frontend utiliza el token para comunicarse con los demás microservicios.
+6. Los servicios validan el token y los permisos del usuario.
+
+### Diagrama de autenticación
 
 ```mermaid
 sequenceDiagram
     participant U as Usuario
     participant F as Frontend React
-    participant A as Auth Service (8081)
-    participant B as Microservicio REST (8082-8090)
+    participant A as ferreteria-auth
+    participant B as Otros microservicios
 
     U->>F: Ingresa credenciales
     F->>A: POST /api/v1/auth/login
-    A->>A: Valida credenciales (BCrypt)
-    A-->>F: Token JWT (accessToken + refreshToken)
-    F->>B: Solicitud con Authorization: Bearer <token>
-    B->>B: Valida firma JWT y roles (JwtAuthenticationFilter)
-    B-->>F: Respuesta HTTP (200 / 201 / 401 / 403)
-    F-->>U: Resultado
+    A->>A: Valida credenciales
+    A-->>F: Devuelve tokens JWT
+    F->>B: Envía solicitud con JWT
+    B->>B: Valida token y permisos
+    B-->>F: Devuelve respuesta
+    F-->>U: Muestra resultado
 ```
 
-### Encabezado de autorización HTTP
+### Encabezado utilizado
 
 ```http
 Authorization: Bearer <token>
 ```
 
-### Mecanismos de seguridad
+### Seguridad implementada
 
-- Validación de la firma del token JWT con clave secreta compartida (`JWT_SECRET`).
-- Verificación del emisor (`JWT_ISSUER=ferreteria-auth`).
-- Validación de fecha de expiración y soporte para refresh token.
-- Restricción granular de endpoints por método HTTP y rol (`hasRole` / `hasAnyRole`).
-- Configuración CORS centralizada para el origen del frontend (`APP_CORS_ALLOWED_ORIGIN`).
-- Externalización total de credenciales y claves privadas mediante variables de entorno.
+- Contraseñas protegidas mediante BCrypt.
+- Autenticación con JWT.
+- Validación de tokens.
+- Control de acceso por roles.
+- Configuración CORS.
+- Manejo de sesiones `STATELESS`.
+- Variables de entorno para proteger credenciales.
 
-### Códigos de respuesta de seguridad
+### Respuestas HTTP de seguridad
 
-| Código HTTP | Significado |
+| Código | Significado |
 |---|---|
-| 400 Bad Request | Datos de entrada inválidos. |
-| 401 Unauthorized | Token ausente, expirado o inválido. |
-| 403 Forbidden | Usuario autenticado sin los permisos/roles necesarios. |
-| 404 Not Found | Recurso inexistente. |
+| 200 | Solicitud realizada correctamente. |
+| 201 | Registro creado. |
+| 204 | Operación realizada sin contenido de respuesta. |
+| 400 | Datos incorrectos. |
+| 401 | Usuario no autenticado o token inválido. |
+| 403 | Usuario sin permisos. |
+| 404 | Recurso no encontrado. |
 
 ---
 
-## 10. Instalación y ejecución local
+## 10. Instalación y ejecución
 
-### Requisitos previos
+### Requisitos
+
+Antes de ejecutar el proyecto se necesita tener instalado:
 
 - Java JDK 17 o superior.
-- MySQL 8.0+ o MariaDB.
+- MySQL o MariaDB.
 - Git.
-- Maven o Maven Wrapper (`mvnw` / `mvnw.cmd`).
+- Maven.
 - Node.js y npm para el frontend.
 - Visual Studio Code o IntelliJ IDEA.
 
@@ -534,15 +524,15 @@ Authorization: Bearer <token>
 git clone https://github.com/kevishowardgonzalez/ferreteria-backend.git
 ```
 
-Acceder al directorio:
+Ingresar a la carpeta:
 
 ```bash
 cd ferreteria-backend
 ```
 
-### 10.2. Configuración de la base de datos
+### 10.2. Crear las bases de datos
 
-Cada microservicio crea automáticamente su esquema si `createDatabaseIfNotExist=true` está activo en la URL JDBC, o puede crearse manualmente en MySQL / MariaDB:
+Si las bases de datos no se crean automáticamente, se pueden crear manualmente desde MySQL:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS ferreteria_auth CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -566,121 +556,115 @@ CREATE DATABASE IF NOT EXISTS ferreteria_contacto CHARACTER SET utf8mb4 COLLATE 
 CREATE DATABASE IF NOT EXISTS ferreteria_foro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 10.3. Variables de entorno
+### 10.3. Configurar variables de entorno
 
-Las configuraciones sensibles se mantienen fuera del código fuente mediante variables de entorno:
+Cada microservicio necesita sus datos de conexión y configuración.
 
 | Variable | Descripción |
 |---|---|
-| `DB_URL` | URL JDBC específica de la base de datos del microservicio. |
-| `DB_USER` | Usuario de conexión a MySQL / MariaDB (`ferreteria_app`). |
-| `DB_PASSWORD` | Contraseña de base de datos. |
-| `JWT_SECRET` | Clave secreta compartida para firmar y validar tokens JWT. |
-| `JWT_ISSUER` | Emisor autorizado del token (`ferreteria-auth`). |
-| `APP_CORS_ALLOWED_ORIGIN` | URL del frontend autorizada por CORS (`http://localhost:5173`). |
+| `DB_URL` | Dirección de la base de datos. |
+| `DB_USER` | Usuario de MySQL o MariaDB. |
+| `DB_PASSWORD` | Contraseña de la base de datos. |
+| `JWT_SECRET` | Clave utilizada para firmar los tokens. |
+| `JWT_ISSUER` | Nombre del emisor del token. |
+| `APP_CORS_ALLOWED_ORIGIN` | Dirección permitida del frontend. |
 
-**Ejemplo de configuración en Windows CMD:**
+**Ejemplo para Windows CMD:**
 
 ```cmd
 set "DB_USER=ferreteria_app"
-
-set "DB_PASSWORD=REEMPLAZAR_CON_CLAVE_SEGURA"
-
-set "JWT_SECRET=REEMPLAZAR_CON_SECRETO_LARGO_COMPARTIDO_ENTRE_LOS_10_MS"
-
+set "DB_PASSWORD=TU_CLAVE"
+set "JWT_SECRET=TU_SECRETO_COMPARTIDO"
 set "JWT_ISSUER=ferreteria-auth"
-
 set "APP_CORS_ALLOWED_ORIGIN=http://localhost:5173"
 ```
 
-**Importante:** Reemplazar los valores de ejemplo por las credenciales correspondientes. Nunca subir contraseñas ni claves JWT reales al repositorio.
+**Importante:** No subir contraseñas ni claves reales a GitHub.
 
 ### 10.4. Ejecutar un microservicio
 
-Desde la carpeta correspondiente al microservicio (por ejemplo `ferreteria-auth`):
+Por ejemplo, para iniciar `ferreteria-auth`:
 
-**Windows:**
+**Windows CMD:**
 
 ```cmd
 cd ferreteria-auth
-
 mvnw.cmd spring-boot:run
 ```
 
-**Linux o macOS:**
+**Linux / macOS:**
 
 ```bash
 cd ferreteria-auth
-
 ./mvnw spring-boot:run
 ```
 
-Cada servicio debe ejecutarse utilizando su puerto asignado (8081 al 8090).
+Los demás microservicios se ejecutan de la misma manera, ingresando primero a su respectiva carpeta.
 
-### 10.5. Compilación y empaquetado
+### 10.5. Compilar el proyecto
+
+En Windows:
 
 ```cmd
 mvnw.cmd clean compile
+```
 
+Para generar el archivo JAR:
+
+```cmd
 mvnw.cmd clean package
 ```
 
-El archivo `.jar` compilado se generará dentro del directorio `target/` de cada microservicio.
+Los archivos generados se guardan dentro de la carpeta `target` de cada microservicio.
 
 ---
 
-## 11. Documentación Swagger y OpenAPI
+## 11. Swagger y documentación de API
 
-Todos los microservicios exponen su documentación interactiva mediante Swagger UI y OpenAPI 3:
+Cada microservicio cuenta con documentación mediante Swagger UI y OpenAPI.
 
-| Microservicio | URL Swagger UI | Especificación JSON |
-|---|---|---|
-| Auth | [Swagger](http://localhost:8081/swagger-ui.html) | [OpenAPI](http://localhost:8081/v3/api-docs) |
-| Usuarios | [Swagger](http://localhost:8082/swagger-ui.html) | [OpenAPI](http://localhost:8082/v3/api-docs) |
-| Roles | [Swagger](http://localhost:8083/swagger-ui.html) | [OpenAPI](http://localhost:8083/v3/api-docs) |
-| Categorías | [Swagger](http://localhost:8084/swagger-ui.html) | [OpenAPI](http://localhost:8084/v3/api-docs) |
-| Productos | [Swagger](http://localhost:8085/swagger-ui.html) | [OpenAPI](http://localhost:8085/v3/api-docs) |
-| Inventario | [Swagger](http://localhost:8086/swagger-ui.html) | [OpenAPI](http://localhost:8086/v3/api-docs) |
-| Boletas | [Swagger](http://localhost:8087/swagger-ui.html) | [OpenAPI](http://localhost:8087/v3/api-docs) |
-| Carrito | [Swagger](http://localhost:8088/swagger-ui.html) | [OpenAPI](http://localhost:8088/v3/api-docs) |
-| Contacto | [Swagger](http://localhost:8089/swagger-ui.html) | [OpenAPI](http://localhost:8089/v3/api-docs) |
-| Foro | [Swagger](http://localhost:8090/swagger-ui.html) | [OpenAPI](http://localhost:8090/v3/api-docs) |
+Las direcciones locales son:
 
-Para probar endpoints protegidos en Swagger UI, utilizar el botón **Authorize** ingresando el token obtenido desde `ferreteria-auth`.
+| Microservicio | Swagger UI |
+|---|---|
+| ferreteria-auth | [Abrir Swagger](http://localhost:8081/swagger-ui.html) |
+| ferreteria-usuarios | [Abrir Swagger](http://localhost:8082/swagger-ui.html) |
+| ferreteria-roles | [Abrir Swagger](http://localhost:8083/swagger-ui.html) |
+| ferreteria-categorias | [Abrir Swagger](http://localhost:8084/swagger-ui.html) |
+| ferreteria-productos | [Abrir Swagger](http://localhost:8085/swagger-ui.html) |
+| ferreteria-inventario | [Abrir Swagger](http://localhost:8086/swagger-ui.html) |
+| ferreteria-boletas | [Abrir Swagger](http://localhost:8087/swagger-ui.html) |
+| ferreteria-carrito | [Abrir Swagger](http://localhost:8088/swagger-ui.html) |
+| ferreteria-contacto | [Abrir Swagger](http://localhost:8089/swagger-ui.html) |
+| ferreteria-foro | [Abrir Swagger](http://localhost:8090/swagger-ui.html) |
+
+Para probar los endpoints protegidos se debe utilizar el botón **Authorize** de Swagger e ingresar un token JWT válido.
 
 ---
 
-## 12. Pruebas y validaciones
+## 12. Pruebas del proyecto
 
-El proceso de verificación contempla pruebas unitarias, funcionales, validación de datos, persistencia, seguridad e integración entre frontend y backend.
+Para revisar que los servicios funcionen correctamente se utilizan diferentes herramientas:
 
-### Herramientas de prueba
-
-- Swagger UI.
 - Postman.
-- JUnit 5 / Mockito / Spring Boot Test.
-- phpMyAdmin / MySQL Workbench.
+- Swagger UI.
+- JUnit 5.
+- Mockito.
+- Spring Boot Test.
+- MySQL Workbench.
+- phpMyAdmin.
 
-### Códigos de respuesta HTTP verificados
-
-| Código | Estado | Descripción |
-|---|---|---|
-| 200 | OK | Operación realizada correctamente. |
-| 201 | Created | Registro creado correctamente. |
-| 204 | No Content | Operación exitosa sin contenido de respuesta. |
-| 400 | Bad Request | Solicitud con datos inválidos. |
-| 401 | Unauthorized | Token ausente o inválido. |
-| 403 | Forbidden | Acceso denegado por falta de permisos. |
-| 404 | Not Found | Recurso no encontrado. |
-| 500 | Internal Server Error | Error interno controlado del servidor. |
+Se realizan pruebas de registro, inicio de sesión, consultas, creación y modificación de datos, validación de permisos y conexión con las bases de datos.
 
 ---
 
-## 13. Integración con el frontend
+## 13. Conexión con el frontend
 
-El frontend de Ferretería Los Maestros está desarrollado mediante React y Vite.
+El frontend está desarrollado con React y Vite.
 
-La comunicación con los 10 microservicios se realiza mediante solicitudes HTTP (`fetch` / `axios`), centralizando las URLs base mediante variables de entorno de Vite:
+Para comunicarse con el backend utiliza solicitudes HTTP mediante `fetch` o `axios`.
+
+Las direcciones de los microservicios se configuran mediante variables de entorno:
 
 ```env
 VITE_AUTH_API_URL=http://localhost:8081/api/v1/auth
@@ -708,13 +692,16 @@ VITE_FORO_API_URL=http://localhost:8090/api/v1/foro
 
 ## 14. Despliegue en AWS
 
-La arquitectura contempla el despliegue de Ferretería Los Maestros mediante servicios de Amazon Web Services (AWS):
+Se contempla utilizar Amazon Web Services para publicar el proyecto y permitir el acceso desde internet.
 
-- Amazon EC2 con sistema operativo Ubuntu Linux.
-- Java Runtime Environment para la ejecución de los 10 `.jar` independientes.
-- MariaDB para las 10 bases de datos independientes.
-- Nginx como servidor web estático para React y Reverse Proxy hacia los puertos 8081–8090.
-- systemd para administrar los 10 servicios backend como demonios persistentes.
+Los servicios considerados son:
+
+- **Amazon EC2:** servidor donde se ejecutará la aplicación.
+- **Ubuntu Linux:** sistema operativo del servidor.
+- **Java:** ejecución de los microservicios.
+- **MariaDB:** almacenamiento de información.
+- **Nginx:** publicación del frontend y redirección de solicitudes al backend.
+- **systemd:** administración de los servicios.
 
 ### Diagrama de despliegue
 
@@ -725,53 +712,53 @@ flowchart TD
 
     subgraph AWS[Amazon EC2]
         N --> F[Frontend React]
-        N --> B[10 Microservicios Spring Boot :8081-8090]
-        B --> D[(MariaDB - 10 Esquemas)]
+        N --> B[10 Microservicios Spring Boot]
+        B --> D[(MariaDB - 10 Bases de datos)]
     end
 ```
 
 ---
 
-## 15. Control de versiones
+## 15. Git y GitHub
 
-El proyecto utiliza Git y GitHub bajo un esquema de monorepo para administrar el código fuente y facilitar el desarrollo colaborativo.
+Para desarrollar el proyecto y guardar los cambios se utiliza Git y GitHub.
 
-### Buenas prácticas aplicadas
+Algunas de las convenciones utilizadas para los commits son:
 
-- Commits descriptivos siguiendo convenciones (`feat:`, `fix:`, `docs:`, `chore:`).
-- Exclusión de credenciales, claves privadas y archivos compilados (`target/`) mediante `.gitignore`.
-- Estructura modular con 10 proyectos Maven independientes.
+- `feat:` nuevas funcionalidades.
+- `fix:` corrección de errores.
+- `docs:` cambios en la documentación.
+- `chore:` tareas de mantenimiento.
 
-### Repositorio backend
+### Repositorio
 
-[https://github.com/kevishowardgonzalez/ferreteria-backend](https://github.com/kevishowardgonzalez/ferreteria-backend)
+[Ver repositorio en GitHub](https://github.com/kevishowardgonzalez/ferreteria-backend)
 
 ---
 
 ## 16. Equipo de desarrollo
 
-Proyecto desarrollado colaborativamente por estudiantes de Ingeniería en Informática de Duoc UC.
+Proyecto realizado en equipo por estudiantes de Ingeniería en Informática de Duoc UC.
 
-| Integrante | Responsabilidades y Microservicios |
+| Integrante | Trabajo realizado |
 |---|---|
-| Kevis González | Arquitectura Backend, Auth, Usuarios, Roles, Productos, Categorías, Inventario, Boletas, Carrito, Contacto y Foro. |
-| Yerickson Rodríguez | Integración Frontend, Carrito, Checkout y pruebas funcionales. |
-| Javier Cruz | Panel Administrativo, Usuarios, Mantenedores y documentación. |
+| Kevis González | Desarrollo y organización del backend, microservicios y bases de datos. |
+| Yerickson Rodríguez | Integración del frontend, carrito, checkout y pruebas funcionales. |
+| Javier Cruz | Panel administrativo, usuarios, mantenedores y documentación. |
 
 ---
 
-## 17. Documentación y evaluación académica
+## 17. Proyecto académico
 
-El desarrollo del proyecto considera los requerimientos establecidos para la asignatura Desarrollo Fullstack II (DSY1104):
+**Asignatura:** Desarrollo Fullstack II (DSY1104)
 
-| Criterio | Implementación y evidencia |
-|---|---|
-| Backend y base de datos | 10 microservicios con entidades JPA, repositorios y bases de datos independientes. |
-| Lógica de negocio | Servicios desacoplados, validaciones Jakarta y reglas de negocio por dominio. |
-| API REST | Controladores REST con operaciones CRUD y códigos HTTP estandarizados. |
-| Documentación de API | Swagger UI y especificaciones OpenAPI 3 en los 10 servicios. |
-| Seguridad y sesiones | Autenticación JWT stateless y control de acceso por roles (ADMIN, VENDEDOR, CLIENTE). |
-| Control de versiones | Repositorio público en GitHub con historial estructurado y documentación técnica. |
+**Carrera:** Ingeniería en Informática
+
+**Institución:** Duoc UC
+
+**Año:** 2026
+
+El proyecto busca aplicar los conocimientos adquiridos durante la asignatura, trabajando con Java, Spring Boot, React, bases de datos, API REST y GitHub.
 
 ---
 
@@ -779,10 +766,8 @@ El desarrollo del proyecto considera los requerimientos establecidos para la asi
 
 # 🔨 FERRETERÍA LOS MAESTROS
 
-**Desarrollo Fullstack II — DSY1104**
+**Desarrollo Fullstack II — Duoc UC**
 
-Ingeniería en Informática · Duoc UC · 2026
-
-*Proyecto académico de desarrollo e integración de aplicaciones web.*
+*Proyecto académico 2026*
 
 </div>
