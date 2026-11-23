@@ -15,19 +15,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Guía 17, sección 12: lee el Bearer, valida el JWT y registra la identidad con su rol. */
+// Lee "Authorization: Bearer <token>" y registra correo y rol para Spring Security.
+// Se usa en los endpoints de administración de credenciales (solo ADMIN).
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwt;
 
-    public JwtAuthenticationFilter(JwtService jwt) {
-        this.jwt = jwt;
-    }
+    public JwtAuthenticationFilter(JwtService jwt) {this.jwt = jwt;}
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    HttpServletResponse response, FilterChain chain)
+    throws ServletException, IOException {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             try {
@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String correo = claims.getSubject();
                 String rol = claims.get("rol", String.class);
                 var auth = new UsernamePasswordAuthenticationToken(correo, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+                List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JwtException | IllegalArgumentException e) {
                 SecurityContextHolder.clearContext();
