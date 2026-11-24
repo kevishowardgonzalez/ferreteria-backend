@@ -1,12 +1,12 @@
 package cl.duoc.ferreteria_contacto.service;
 
 import cl.duoc.ferreteria_contacto.dto.ContactoRequest;
-import cl.duoc.ferreteria_contacto.exception.RecursoNoEncontradoException;
-import cl.duoc.ferreteria_contacto.model.MensajeContacto;
+import cl.duoc.ferreteria_contacto.dto.ContactoResponse;
+import cl.duoc.ferreteria_contacto.model.Contacto;
 import cl.duoc.ferreteria_contacto.repository.ContactoRepository;
-import org.springframework.stereotype.Service;
+import cl.duoc.ferreteria_contacto.exception.RecursoNoEncontradoException;
 
-import java.time.LocalDateTime;
+import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
@@ -18,33 +18,74 @@ public class ContactoService {
         this.repository = repository;
     }
 
-    public List<MensajeContacto> listar() {
-        return repository.findAllByOrderByFechaDesc();
+    // LISTAR CONTACTOS
+    public List<ContactoResponse> listar() {
+        return repository.findAll()
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
     }
 
-    public MensajeContacto enviar(ContactoRequest req) {
-        MensajeContacto m = new MensajeContacto(
-                null,
-                req.getNombre().trim(),
-                req.getCorreo().trim().toLowerCase(),
-                req.getAsunto().trim(),
-                req.getMensaje().trim(),
-                LocalDateTime.now(),
-                false);
-        return repository.save(m);
+    // BUSCAR CONTACTO POR ID
+    public ContactoResponse buscarPorId(Long id) {
+        Contacto contacto = buscarEntidadPorId(id);
+        return convertirAResponse(contacto);
     }
 
-    public MensajeContacto marcarRespondido(Long id) {
-        MensajeContacto m = repository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Mensaje no encontrado: " + id));
-        m.setRespondido(true);
-        return repository.save(m);
+    // CREAR CONTACTO
+    public ContactoResponse crear(ContactoRequest request) {
+
+        Contacto contacto = new Contacto();
+
+        contacto.setNombre(request.nombre());
+        contacto.setCorreo(request.correo());
+        contacto.setAsunto(request.asunto());
+        contacto.setMensaje(request.mensaje());
+
+        Contacto guardado = repository.save(contacto);
+
+        return convertirAResponse(guardado);
     }
 
+    // ACTUALIZAR CONTACTO
+    public ContactoResponse actualizar(Long id, ContactoRequest request) {
+
+        Contacto contacto = buscarEntidadPorId(id);
+
+        contacto.setNombre(request.nombre());
+        contacto.setCorreo(request.correo());
+        contacto.setAsunto(request.asunto());
+        contacto.setMensaje(request.mensaje());
+
+        Contacto actualizado = repository.save(contacto);
+
+        return convertirAResponse(actualizado);
+    }
+
+    // ELIMINAR CONTACTO
     public void eliminar(Long id) {
-        if (!repository.existsById(id)) {
-            throw new RecursoNoEncontradoException("Mensaje no encontrado: " + id);
-        }
-        repository.deleteById(id);
+        Contacto contacto = buscarEntidadPorId(id);
+        repository.delete(contacto);
+    }
+
+    // BUSCAR ENTIDAD EN LA BASE DE DATOS
+    private Contacto buscarEntidadPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Contacto no encontrado con ID: " + id
+                ));
+    }
+
+    // CONVERTIR ENTIDAD A DTO DE RESPUESTA
+    private ContactoResponse convertirAResponse(Contacto contacto) {
+
+        return new ContactoResponse(
+                contacto.getId(),
+                contacto.getNombre(),
+                contacto.getCorreo(),
+                contacto.getAsunto(),
+                contacto.getMensaje(),
+                contacto.getFechaCreacion()
+        );
     }
 }

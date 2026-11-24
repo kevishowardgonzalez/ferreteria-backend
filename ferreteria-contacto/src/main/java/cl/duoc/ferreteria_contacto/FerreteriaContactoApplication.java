@@ -1,13 +1,14 @@
-package cl.duoc.ferreteria_auth;
+package cl.duoc.ferreteria_contacto;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FerreteriaAuthApplication {
+public class FerreteriaContactoApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FerreteriaAuthApplication.class, args);
+        // ¡Aquí estaba el error! Debe llevar el mismo nombre de la clase de arriba
+		SpringApplication.run(FerreteriaContactoApplication.class, args);
 	}
 
 }

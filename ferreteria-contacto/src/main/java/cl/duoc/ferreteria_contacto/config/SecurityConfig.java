@@ -1,73 +1,117 @@
 package cl.duoc.ferreteria_contacto.config;
 
-import cl.duoc.ferreteria_contacto.security.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import cl.duoc.ferreteria_contacto.security.JwtAuthenticationFilter;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtFilter;
 
-    @Value("${app.cors.allowed-origin:http://localhost:5173}")
-    private String allowedOrigin;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
+
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/contacto").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/contacto/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/contacto/**").hasAnyRole("ADMIN", "VENDEDOR")
-                        .anyRequest().denyAll()
-                )
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(csrf -> csrf.disable())
+
+            .cors(cors -> cors.configurationSource(
+                    corsConfigurationSource()))
+
+            .sessionManagement(session -> session
+                    .sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS))
+
+            .exceptionHandling(exception -> exception
+        .authenticationEntryPoint(
+                new HttpStatusEntryPoint(
+                        HttpStatus.UNAUTHORIZED))
+        .accessDeniedHandler((request, response, ex) ->
+                response.setStatus(
+                        HttpStatus.FORBIDDEN.value())))
+                        
+
+            .authorizeHttpRequests(auth -> auth
+
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                    .permitAll()
+
+                    .requestMatchers(
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**")
+                    .permitAll()
+
+                    .requestMatchers(
+                            HttpMethod.POST, "/api/contactos")
+                    .permitAll()
+
+                    .requestMatchers(
+                            HttpMethod.GET,
+                            "/api/contactos",
+                            "/api/contactos/**")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(
+                            HttpMethod.PUT, "/api/contactos/**")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(
+                            HttpMethod.DELETE, "/api/contactos/**")
+                    .hasRole("ADMIN")
+
+                    .anyRequest().denyAll())
+
+            .addFilterBefore(
+                    jwtFilter,
+                    UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigin.split(",")));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(
+                List.of("http://localhost:5173"));
+
+        config.setAllowedMethods(
+                List.of("GET", "POST", "PUT",
+                        "DELETE", "OPTIONS"));
+
+        config.setAllowedHeaders(
+                List.of("Authorization", "Content-Type"));
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/api/**", config);
+
         return source;
     }
 }

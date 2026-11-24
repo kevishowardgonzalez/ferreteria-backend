@@ -1,33 +1,34 @@
-package cl.duoc.ferreteria_usuarios.exception; // 
+package cl.duoc.ferreteria_contacto.exception;
 
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
-    ResponseEntity> noEncontrado(RecursoNoEncontradoException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("mensaje", e.getMessage()));
-    }
+    public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(
+            RecursoNoEncontradoException ex) {
 
-    @ExceptionHandler(ReglaNegocioException.class)
-    ResponseEntity> reglaNegocio(ReglaNegocioException e) {
-        return ResponseEntity.badRequest()
-                .body(Map.of("mensaje", e.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity> datosInvalidos(MethodArgumentNotValidException e) {
-        String mensaje = e.getBindingResult().getFieldErrors().stream()
-                .findFirst().map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("Datos inválidos");
-        return ResponseEntity.badRequest()
-                .body(Map.of("mensaje", mensaje));
+    public ResponseEntity<Map<String, String>> manejarValidacion(
+            MethodArgumentNotValidException ex) {
+
+        Map<String, String> errores = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errores.put(error.getField(), error.getDefaultMessage()));
+
+        return ResponseEntity.badRequest().body(errores);
     }
 }

@@ -1,10 +1,10 @@
 package cl.duoc.ferreteria_contacto.repository;
+import cl.duoc.ferreteria_contacto.model.*;
 
-import cl.duoc.ferreteria_contacto.model.MensajeContacto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+@Repository
+public interface ContactoRepository extends JpaRepository<Contacto, Long> {
 
-public interface ContactoRepository extends JpaRepository<MensajeContacto, Long> {
-    List<MensajeContacto> findAllByOrderByFechaDesc();
 }

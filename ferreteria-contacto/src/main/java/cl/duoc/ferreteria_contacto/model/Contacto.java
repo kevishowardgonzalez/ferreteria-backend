@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "mensajes_contacto")
-public class MensajeContacto {
+public class Contacto { // <-- Cambiado de ModelContacto a Contacto
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,7 +31,7 @@ public class MensajeContacto {
     private String mensaje;
 
     @Column(nullable = false)
-    private LocalDateTime fecha = LocalDateTime.now();
+    private LocalDateTime fechaCreacion = LocalDateTime.now(); // <-- Cambiado de fecha a fechaCreacion
 
     private Boolean respondido = false;
 }

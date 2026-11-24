@@ -1,20 +1,25 @@
 package cl.duoc.ferreteria_contacto.controller;
 
-import cl.duoc.ferreteria_contacto.dto.ContactoRequest;
-import cl.duoc.ferreteria_contacto.model.MensajeContacto;
+// ¡Estos son los imports correctos!
 import cl.duoc.ferreteria_contacto.service.ContactoService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import cl.duoc.ferreteria_contacto.dto.ContactoRequest;
+import cl.duoc.ferreteria_contacto.dto.ContactoResponse;
+
 import jakarta.validation.Valid;
+
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/contacto")
-@Tag(name = "Contacto", description = "Formulario de consultas y soporte al cliente")
+@RequestMapping("/api/contactos")
 public class ContactoController {
 
     private final ContactoService service;
@@ -23,28 +28,50 @@ public class ContactoController {
         this.service = service;
     }
 
-    @Operation(summary = "Enviar mensaje de contacto (Público)")
-    @PostMapping
-    public ResponseEntity<MensajeContacto> enviar(@Valid @RequestBody ContactoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.enviar(request));
-    }
-
-    @Operation(summary = "Listar mensajes recibidos (ADMIN o VENDEDOR)")
+    // LISTAR CONTACTOS
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
-    public List<MensajeContacto> listar() {
-        return service.listar();
+    public ResponseEntity<List<ContactoResponse>> listar() {
+        return ResponseEntity.ok(service.listar());
     }
 
-    @Operation(summary = "Marcar mensaje como respondido (ADMIN o VENDEDOR)")
-    @PutMapping("/{id}/responder")
-    public MensajeContacto marcarRespondido(@PathVariable Long id) {
-        return service.marcarRespondido(id);
+    // BUSCAR CONTACTO POR ID
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/{id}")
+    public ResponseEntity<ContactoResponse> buscarPorId(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
-    @Operation(summary = "Eliminar mensaje (ADMIN)")
+    // CREAR CONTACTO
+    @PostMapping
+    public ResponseEntity<ContactoResponse> crear(
+            @Valid @RequestBody ContactoRequest request) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(service.crear(request));
+    }
+
+    // ACTUALIZAR CONTACTO
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/{id}")
+    public ResponseEntity<ContactoResponse> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ContactoRequest request) {
+
+        return ResponseEntity.ok(service.actualizar(id, request));
+    }
+
+    // ELIMINAR CONTACTO
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id) {
+
         service.eliminar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
