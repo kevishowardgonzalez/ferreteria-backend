@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>cl.duoc</groupId>
-	<artifactId>ferreteria-auth</artifactId>
+	<artifactId>ferreteria-usuarios</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>

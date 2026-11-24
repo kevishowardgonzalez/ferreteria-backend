@@ -1,33 +1,33 @@
 package cl.duoc.ferreteria_usuarios.exception;
 
+import io.jsonwebtoken.JwtException;
 import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+  @ExceptionHandler(RecursoNoEncontradoException.class)
+  ResponseEntity<Map<String, String>> noEncontrado(RecursoNoEncontradoException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+      .body(Map.of("error", e.getMessage()));
+  }
 
-    @ExceptionHandler(RecursoNoEncontradoException.class)
-    ResponseEntity> noEncontrado(RecursoNoEncontradoException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("mensaje", e.getMessage()));
-    }
+  @ExceptionHandler(DatosInvalidosException.class)
+  ResponseEntity<Map<String, String>> reglaIncumplida(DatosInvalidosException e) {
+    return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+  }
 
-    @ExceptionHandler(ReglaNegocioException.class)
-    ResponseEntity> reglaNegocio(ReglaNegocioException e) {
-        return ResponseEntity.badRequest()
-                .body(Map.of("mensaje", e.getMessage()));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity> datosInvalidos(MethodArgumentNotValidException e) {
-        String mensaje = e.getBindingResult().getFieldErrors().stream()
-                .findFirst().map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("Datos inválidos");
-        return ResponseEntity.badRequest()
-                .body(Map.of("mensaje", mensaje));
-    }
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  ResponseEntity<Map<String, String>> datosInvalidos(MethodArgumentNotValidException e) {
+    String mensaje = e.getBindingResult().getFieldErrors().stream()
+      .findFirst().map(error -> error.getField() + ": " + error.getDefaultMessage())
+      .orElse("Datos inválidos");
+    return ResponseEntity.badRequest().body(Map.of("error", mensaje));
+  }
 }

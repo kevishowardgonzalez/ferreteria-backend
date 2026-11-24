@@ -1,5 +1,6 @@
 package cl.duoc.ferreteria_auth.config;
 
+import cl.duoc.ferreteria_auth.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

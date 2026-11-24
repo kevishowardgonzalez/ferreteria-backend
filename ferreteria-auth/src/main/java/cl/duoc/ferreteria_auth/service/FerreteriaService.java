@@ -2,13 +2,16 @@ package cl.duoc.ferreteria_auth.service;
 
 import cl.duoc.ferreteria_auth.dto.AuthResponse;
 import cl.duoc.ferreteria_auth.dto.LoginRequest;
+import cl.duoc.ferreteria_auth.dto.RefreshRequest;
 import cl.duoc.ferreteria_auth.dto.RegistroRequest;
-import org.springframework.security.authentication.BadCredentialsException;
 import cl.duoc.ferreteria_auth.exception.ReglaNegocioException;
 import cl.duoc.ferreteria_auth.model.Rol;
 import cl.duoc.ferreteria_auth.model.Usuario;
 import cl.duoc.ferreteria_auth.repository.UsuarioRepository;
 import cl.duoc.ferreteria_auth.security.JwtService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -62,16 +65,23 @@ public class FerreteriaService {
     }
 
     /**
-     * Renovación de token: con un token vigente (validado por el filtro JWT) se emite uno nuevo,
-     * releyendo el usuario desde la BD para tomar su rol y estado actuales.
+     * Renovación de token: valida el token recibido, extrae el correo y emite uno nuevo
+     * releyendo el usuario desde la BD.
      */
-    public AuthResponse refresh(String correo) {
-        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
-                .orElseThrow(() -> new BadCredentialsException("Usuario no existe"));
-        if (!Boolean.TRUE.equals(usuario.getActivo())) {
-            throw new BadCredentialsException("Usuario desactivado");
+    public AuthResponse refresh(RefreshRequest request) {
+        try {
+            Claims claims = jwtService.validar(request.getToken());
+            String correo = claims.getSubject();
+
+            Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
+                    .orElseThrow(() -> new BadCredentialsException("Usuario no existe"));
+            if (!Boolean.TRUE.equals(usuario.getActivo())) {
+                throw new BadCredentialsException("Usuario desactivado");
+            }
+            return construirRespuesta(usuario);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new BadCredentialsException("Token inválido o expirado");
         }
-        return construirRespuesta(usuario);
     }
 
     private AuthResponse construirRespuesta(Usuario u) {
