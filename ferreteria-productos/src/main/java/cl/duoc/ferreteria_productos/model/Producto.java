@@ -1,44 +1,32 @@
 package cl.duoc.ferreteria_productos.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.math.BigDecimal;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "productos")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Producto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true, nullable = false, length = 40)
-    private String sku;
+  @Column(nullable = false, length = 100)
+  private String nombre;
 
-    @Column(nullable = false, length = 120)
-    private String nombre;
+  @Column(nullable = false, length = 50)
+  private String categoria;
 
-    @Column(length = 500)
-    private String descripcion;
+  @Column(nullable = false, precision = 14, scale = 2)
+  private BigDecimal precio;
 
-    @Column(length = 80)
-    private String marca;
+  @Column(nullable = false)
+  private Integer stock;
 
-    @Column(nullable = false)
-    private Integer precio;
-
-    @Column(nullable = false)
-    private Integer stock;
-
-    @Column(name = "categoria_id", nullable = false)
-    private Long categoriaId;
-
-    @Column(name = "imagen_url", length = 500)
-    private String imagenUrl;
-
-    private Boolean activo = true;
+  @Column(length = 1000)
+  private String descripcion;
 }

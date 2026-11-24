@@ -3,8 +3,6 @@ package cl.duoc.ferreteria_productos.controller;
 import cl.duoc.ferreteria_productos.dto.ProductoRequest;
 import cl.duoc.ferreteria_productos.model.Producto;
 import cl.duoc.ferreteria_productos.service.ProductoService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/productos")
-@Tag(name = "Productos", description = "Catálogo de productos de Ferretería Los Maestros")
+@RequestMapping("/api/productos")
 public class ProductoController {
 
     private final ProductoService service;
@@ -23,52 +20,38 @@ public class ProductoController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar todos los productos")
+    // LISTAR TODOS O BUSCAR POR FILTRO (GET /api/productos o GET /api/productos?filtro=martillo)
     @GetMapping
-    public List<Producto> listar() {
-        return service.listar();
+    public ResponseEntity<List<Producto>> listar(@RequestParam(required = false) String filtro) {
+        if (filtro != null && !filtro.isBlank()) {
+            return ResponseEntity.ok(service.buscarPorFiltro(filtro));
+        }
+        return ResponseEntity.ok(service.listar());
     }
 
-    @Operation(summary = "Listar productos activos (catálogo público)")
-    @GetMapping("/activos")
-    public List<Producto> listarActivos() {
-        return service.listarActivos();
-    }
-
-    @Operation(summary = "Filtrar productos activos por categoría")
-    @GetMapping("/categoria/{categoriaId}")
-    public List<Producto> listarPorCategoria(@PathVariable Long categoriaId) {
-        return service.listarPorCategoria(categoriaId);
-    }
-
-    @Operation(summary = "Buscar productos por nombre")
-    @GetMapping("/buscar")
-    public List<Producto> buscarPorNombre(@RequestParam String nombre) {
-        return service.buscarPorNombre(nombre);
-    }
-
-    @Operation(summary = "Obtener producto por ID")
+    // BUSCAR UN PRODUCTO POR ID (GET /api/productos/1)
     @GetMapping("/{id}")
-    public Producto buscar(@PathVariable Long id) {
-        return service.buscar(id);
+    public ResponseEntity<Producto> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.buscar(id));
     }
 
-    @Operation(summary = "Crear producto (ADMIN o VENDEDOR)")
+    // CREAR UN PRODUCTO NUEVO (POST /api/productos) - Protegido por JWT
     @PostMapping
-    public ResponseEntity<Producto> crear(@Valid @RequestBody ProductoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(request));
+    public ResponseEntity<Producto> crear(@Valid @RequestBody ProductoRequest req) {
+        Producto nuevoProducto = service.crear(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
-    @Operation(summary = "Actualizar producto (ADMIN o VENDEDOR)")
+    // ACTUALIZAR UN PRODUCTO EXISTENTE (PUT /api/productos/1) - Protegido por JWT
     @PutMapping("/{id}")
-    public Producto actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
-        return service.actualizar(id, request);
+    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest req) {
+        return ResponseEntity.ok(service.actualizar(id, req));
     }
 
-    @Operation(summary = "Desactivar producto (borrado lógico)")
+    // ELIMINAR UN PRODUCTO (DELETE /api/productos/1) - Protegido por JWT
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable Long id) {
-        service.desactivar(id);
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build(); // Devuelve 204 No Content
     }
 }

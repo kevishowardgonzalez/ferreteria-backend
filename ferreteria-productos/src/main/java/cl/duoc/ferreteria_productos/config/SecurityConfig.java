@@ -43,14 +43,15 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/productos/**").permitAll()
-                        .requestMatchers("/api/v1/productos/**").hasAnyRole("ADMIN", "VENDEDOR")
+                                "/swagger-ui.html").permitAll()
+                        // El catálogo de productos es público para que cualquiera pueda verlo
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+                        // Crear, editar y eliminar requiere rol ADMIN o VENDEDOR
+                        .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "VENDEDOR")
                         .anyRequest().denyAll()
                 )
-                .exceptionHandling(e -> e       .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )erBehenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -1,4 +1,4 @@
-package cl.duoc.ferreteria_auth.config;
+package cl.duoc.ferreteria_productos.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "Ferretería Los Maestros - Auth Service",
+                title = "Ferretería Los Maestros - Productos Service",
                 version = "1.0",
-                description = "Microservicio de autenticación, registro y emisión/renovación de tokens JWT"
+                description = "Microservicio para la gestión del catálogo de productos y stock"
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
