@@ -34,7 +34,7 @@ public class DataInitializer {
 
                 Producto p3 = new Producto();
                 p3.setNombre("Saco Cemento Especial 25 kg");
-                p3.setCategoria("Materiales de Construcción");
+                p3.setCategoria("Construcción");
                 p3.setPrecio(new BigDecimal("4890"));
                 p3.setStock(100);
                 p3.setDescripcion("Cemento puzolánico de alta resistencia para obra gruesa");

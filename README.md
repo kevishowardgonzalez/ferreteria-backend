@@ -667,7 +667,7 @@ Para comunicarse con el backend utiliza solicitudes HTTP mediante `fetch` o `axi
 Las direcciones de los microservicios se configuran mediante variables de entorno:
 
 ```env
-VITE_AUTH_API_URL=http://localhost:8081/api/v1/auth
+VITE_AUTH_API_URL=http://localhost:8081/api
 
 VITE_USUARIOS_API_URL=http://localhost:8082/api/v1/usuarios
 
@@ -675,7 +675,7 @@ VITE_ROLES_API_URL=http://localhost:8083/api/v1/roles
 
 VITE_CATEGORIAS_API_URL=http://localhost:8084/api/v1/categorias
 
-VITE_PRODUCTOS_API_URL=http://localhost:8085/api/v1/productos
+VITE_PRODUCTOS_API_URL=http://localhost:8085/api/productos
 
 VITE_INVENTARIO_API_URL=http://localhost:8086/api/v1/inventario
 
