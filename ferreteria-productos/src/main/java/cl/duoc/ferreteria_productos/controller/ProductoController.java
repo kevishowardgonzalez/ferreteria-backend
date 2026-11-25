@@ -38,7 +38,7 @@ public class ProductoController {
         return ResponseEntity.ok(service.buscar(id));
     }
 
-    @Operation(summary = "Crear producto (ADMIN o VENDEDOR)")
+    @Operation(summary = "Crear producto (ADMIN)")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Producto> crear(@Valid @RequestBody ProductoRequest req) {
@@ -46,13 +46,13 @@ public class ProductoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
-    @Operation(summary = "Actualizar producto (ADMIN o VENDEDOR)")
+    @Operation(summary = "Actualizar producto (ADMIN)")
     @PutMapping("/{id}")
     public ResponseEntity<Producto> actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest req) {
         return ResponseEntity.ok(service.actualizar(id, req));
     }
 
-    @Operation(summary = "Eliminar producto (ADMIN o VENDEDOR)")
+    @Operation(summary = "Eliminar producto (ADMIN)")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {

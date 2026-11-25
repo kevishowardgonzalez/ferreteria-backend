@@ -18,6 +18,36 @@ class CategoriasHttpTests {
     @Autowired ObjectMapper json;
 
     @Test
+    void visitantePuedeConsultarCategoriasActivasPeroNoElListadoInterno() throws Exception {
+        mvc.perform(get("/api/v1/categorias/activas")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/categorias")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/categorias/1")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/categorias").contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "VENDEDOR")
+    void vendedorPuedeConsultarElListadoPeroNoEscribir() throws Exception {
+        mvc.perform(get("/api/v1/categorias")).andExpect(status().isOk());
+        mvc.perform(post("/api/v1/categorias").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/v1/categorias/1").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/api/v1/categorias/1")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENTE")
+    void clienteSoloPuedeConsultarElCatalogoPublico() throws Exception {
+        mvc.perform(get("/api/v1/categorias/activas")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/categorias")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/categorias/1")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/categorias").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "ADMIN")
     void persisteYValidaLasOperacionesDelServicio() throws Exception {
         String base = "/api/v1/categorias";

@@ -45,12 +45,16 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/inventario/producto/**").permitAll()
-                        .requestMatchers("/api/v1/inventario/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/inventario/producto/{productoId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/inventario/producto/{productoId}/movimientos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/inventario").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/inventario", "/api/v1/inventario/movimientos").hasRole("ADMIN")
                         .anyRequest().denyAll()
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value()))
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

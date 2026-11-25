@@ -23,7 +23,7 @@ public class CategoriaController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar todas las categorías")
+    @Operation(summary = "Listar todas las categorías (ADMIN o VENDEDOR)")
     @GetMapping
     public List<Categoria> listar() {
         return service.listar();
@@ -35,26 +35,26 @@ public class CategoriaController {
         return service.listarActivas();
     }
 
-    @Operation(summary = "Obtener categoría por ID")
+    @Operation(summary = "Obtener categoría por ID (ADMIN o VENDEDOR)")
     @GetMapping("/{id}")
     public Categoria buscar(@PathVariable Long id) {
         return service.buscar(id);
     }
 
-    @Operation(summary = "Crear categoría (ADMIN o VENDEDOR)")
+    @Operation(summary = "Crear categoría (ADMIN)")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Categoria> crear(@Valid @RequestBody CategoriaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(request));
     }
 
-    @Operation(summary = "Actualizar categoría (ADMIN o VENDEDOR)")
+    @Operation(summary = "Actualizar categoría (ADMIN)")
     @PutMapping("/{id}")
     public Categoria actualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequest request) {
         return service.actualizar(id, request);
     }
 
-    @Operation(summary = "Desactivar categoría (borrado lógico)")
+    @Operation(summary = "Desactivar categoría (borrado lógico, ADMIN)")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void desactivar(@PathVariable Long id) {

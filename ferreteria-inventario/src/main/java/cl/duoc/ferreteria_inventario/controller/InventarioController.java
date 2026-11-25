@@ -25,7 +25,7 @@ public class InventarioController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar inventario completo")
+    @Operation(summary = "Listar inventario completo (ADMIN o VENDEDOR)")
     @GetMapping
     public List<InventarioItem> listar() {
         return service.listar();
@@ -37,19 +37,19 @@ public class InventarioController {
         return service.buscarPorProducto(productoId);
     }
 
-    @Operation(summary = "Historial de movimientos de un producto")
+    @Operation(summary = "Historial de movimientos de un producto (ADMIN)")
     @GetMapping("/producto/{productoId}/movimientos")
     public List<MovimientoInventario> listarMovimientos(@PathVariable Long productoId) {
         return service.listarMovimientos(productoId);
     }
 
-    @Operation(summary = "Registrar ficha de inventario (ADMIN o VENDEDOR)")
+    @Operation(summary = "Registrar ficha de inventario (ADMIN)")
     @PostMapping
     public ResponseEntity<InventarioItem> registrarProducto(@Valid @RequestBody InventarioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.registrarProducto(request));
     }
 
-    @Operation(summary = "Registrar entrada, salida o ajuste de stock")
+    @Operation(summary = "Registrar entrada, salida o ajuste de stock (ADMIN)")
     @PostMapping("/movimientos")
     public InventarioItem registrarMovimiento(@Valid @RequestBody MovimientoRequest request) {
         return service.registrarMovimiento(request);
