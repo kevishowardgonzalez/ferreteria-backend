@@ -41,6 +41,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/internal/v1/cuentas/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/internal/v1/cuentas/me").authenticated()
+                        .requestMatchers("/internal/v1/cuentas", "/internal/v1/cuentas/**").hasRole("ADMIN")
+                        .requestMatchers("/internal/**").denyAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
@@ -79,7 +83,7 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 }
