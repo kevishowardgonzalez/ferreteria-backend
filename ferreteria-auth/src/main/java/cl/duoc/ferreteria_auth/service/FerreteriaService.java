@@ -11,9 +11,12 @@ import cl.duoc.ferreteria_auth.repository.UsuarioRepository;
 import cl.duoc.ferreteria_auth.security.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Locale;
 
 @Service
 public class FerreteriaService {
@@ -43,25 +46,42 @@ public class FerreteriaService {
 
     /** Registro público: siempre crea un usuario con rol CLIENTE. */
     public AuthResponse register(RegistroRequest request) {
-        String correo = request.getCorreo().trim().toLowerCase();
+        return construirRespuesta(crearCuenta(request.getRun(), request.getNombre(), request.getApellido(),
+                request.getCorreo(), request.getPassword(), Rol.CLIENTE));
+    }
+
+    Usuario crearCuenta(String runOriginal, String nombre, String apellido,
+                        String correoOriginal, String password, Rol rol) {
+        String correo = correoOriginal.trim().toLowerCase(Locale.ROOT);
+        String run = runOriginal.trim().toUpperCase(Locale.ROOT);
         if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
             throw new ReglaNegocioException("El correo ya está registrado");
         }
-        if (usuarioRepository.existsByRunIgnoreCase(request.getRun().trim())) {
+        if (usuarioRepository.existsByRunIgnoreCase(run)) {
             throw new ReglaNegocioException("El RUN ya está registrado");
         }
 
         Usuario nuevo = new Usuario(
                 null,
-                request.getRun().trim(),
-                request.getNombre().trim(),
-                request.getApellido().trim(),
+                run,
+                nombre.trim(),
+                apellido.trim(),
                 correo,
-                passwordEncoder.encode(request.getPassword()),
-                Rol.CLIENTE.name(),
+                passwordEncoder.encode(password),
+                rol.name(),
                 true
         );
-        return construirRespuesta(usuarioRepository.save(nuevo));
+        try {
+            return usuarioRepository.saveAndFlush(nuevo);
+        } catch (DataIntegrityViolationException e) {
+            for (Throwable causa = e; causa != null; causa = causa.getCause()) {
+                if (causa instanceof ConstraintViolationException restriccion
+                        && restriccion.getKind() == ConstraintViolationException.ConstraintKind.UNIQUE) {
+                    throw new ReglaNegocioException("El correo o el RUN ya está registrado");
+                }
+            }
+            throw e;
+        }
     }
 
     /**
@@ -71,9 +91,9 @@ public class FerreteriaService {
     public AuthResponse refresh(RefreshRequest request) {
         try {
             Claims claims = jwtService.validar(request.getToken());
-            String correo = claims.getSubject();
-
-            Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
+            var identidad = jwtService.identidad(claims);
+            Usuario usuario = usuarioRepository.findById(identidad.id())
+                    .filter(u -> identidad.correo().equals(u.getCorreo()))
                     .orElseThrow(() -> new BadCredentialsException("Usuario no existe"));
             if (!Boolean.TRUE.equals(usuario.getActivo())) {
                 throw new BadCredentialsException("Usuario desactivado");

@@ -74,4 +74,15 @@ public class JwtService {
             return false;
         }
     }
+
+    public Identidad identidad(Claims claims) {
+        Object id = claims.get("id");
+        if (!(id instanceof Integer || id instanceof Long) || ((Number) id).longValue() <= 0) {
+            throw new JwtException("Identificador JWT inválido");
+        }
+        return new Identidad(((Number) id).longValue(), claims.getSubject());
+    }
+
+    public record Identidad(Long id, String correo) {
+    }
 }

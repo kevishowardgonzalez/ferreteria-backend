@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -34,6 +35,7 @@ public class Usuario {
     private String correo;
 
     @Column(nullable = false)
+    @ToString.Exclude
     private String password;
 
     @Column(nullable = false)
