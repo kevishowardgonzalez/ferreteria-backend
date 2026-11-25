@@ -85,6 +85,10 @@ public class FerreteriaService {
     }
 
     private AuthResponse construirRespuesta(Usuario u) {
+        String rol = u.getRol();
+        if (!"ADMIN".equals(rol) && !"VENDEDOR".equals(rol) && !"CLIENTE".equals(rol)) {
+            throw new BadCredentialsException("Rol invalido");
+        }
         return new AuthResponse(jwtService.generarToken(u), u.getId(), u.getNombre(),
                 u.getApellido(), u.getCorreo(), u.getRol());
     }

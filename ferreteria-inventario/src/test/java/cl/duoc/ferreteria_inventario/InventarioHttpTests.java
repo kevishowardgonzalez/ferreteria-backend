@@ -16,6 +16,36 @@ class InventarioHttpTests {
     @Autowired MockMvc mvc;
 
     @Test
+    void visitanteSoloPuedeConsultarExistenciasPorProducto() throws Exception {
+        mvc.perform(get("/api/v1/inventario/producto/999999")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/inventario")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/inventario/producto/1/movimientos")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/inventario").contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "VENDEDOR")
+    void vendedorConsultaInventarioPeroNoMovimientosNiEscrituras() throws Exception {
+        mvc.perform(get("/api/v1/inventario")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/inventario/producto/1/movimientos")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/inventario").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/inventario/movimientos").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENTE")
+    void clienteSoloConsultaExistenciasPublicas() throws Exception {
+        mvc.perform(get("/api/v1/inventario/producto/999999")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/inventario")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/inventario/producto/1/movimientos")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/inventario/movimientos").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "ADMIN")
     void persisteYValidaLasOperacionesDelServicio() throws Exception {
         String base = "/api/v1/inventario";

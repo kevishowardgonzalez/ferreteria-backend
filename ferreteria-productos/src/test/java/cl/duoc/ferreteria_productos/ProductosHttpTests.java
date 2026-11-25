@@ -18,6 +18,32 @@ class ProductosHttpTests {
     @Autowired ObjectMapper json;
 
     @Test
+    void visitantePuedeLeerPeroNecesitaAutenticacionParaEscribir() throws Exception {
+        mvc.perform(get("/api/productos")).andExpect(status().isOk());
+        mvc.perform(post("/api/productos").contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "VENDEDOR")
+    void vendedorPuedeConsultarPeroNoEscribir() throws Exception {
+        mvc.perform(get("/api/productos")).andExpect(status().isOk());
+        mvc.perform(post("/api/productos").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/productos/1").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/api/productos/1")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENTE")
+    void clientePuedeConsultarPeroNoEscribir() throws Exception {
+        mvc.perform(get("/api/productos")).andExpect(status().isOk());
+        mvc.perform(post("/api/productos").contentType("application/json").content("{}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "ADMIN")
     void persisteYValidaLasOperacionesDelServicio() throws Exception {
         String base = "/api/productos";

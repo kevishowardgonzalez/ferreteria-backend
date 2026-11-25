@@ -50,6 +50,8 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value()))
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

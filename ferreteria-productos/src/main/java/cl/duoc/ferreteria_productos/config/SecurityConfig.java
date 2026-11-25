@@ -45,12 +45,16 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
                         // El catálogo de productos es público para que cualquiera pueda verlo
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
-                        // Crear, editar y eliminar requiere rol ADMIN o VENDEDOR
-                        .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/{id}").permitAll()
+                        // Las escrituras del catálogo son administrativas.
+                        .requestMatchers(HttpMethod.POST, "/api/productos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/{id}").hasRole("ADMIN")
                         .anyRequest().denyAll()
                 )
-                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value())))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

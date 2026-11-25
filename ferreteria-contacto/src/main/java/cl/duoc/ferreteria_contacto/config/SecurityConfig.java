@@ -1,6 +1,7 @@
 package cl.duoc.ferreteria_contacto.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import cl.duoc.ferreteria_contacto.security.JwtAuthenticationFilter;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -26,6 +28,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+
+    @Value("${app.cors.allowed-origin:http://localhost:5173}")
+    private String allowedOrigin;
 
     public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
@@ -98,7 +103,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(
-                List.of("http://localhost:5173"));
+                Arrays.stream(allowedOrigin.split(",")).map(String::trim).toList());
 
         config.setAllowedMethods(
                 List.of("GET", "POST", "PUT",
