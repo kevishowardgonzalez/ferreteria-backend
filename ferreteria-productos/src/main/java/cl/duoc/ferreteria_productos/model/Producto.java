@@ -27,6 +27,9 @@ public class Producto {
   @Column(nullable = false)
   private Integer stock;
 
+  // Las filas previas sin este valor se consideran vigentes.
+  private Boolean retirado;
+
   @Column(length = 1000)
   private String descripcion;
 }

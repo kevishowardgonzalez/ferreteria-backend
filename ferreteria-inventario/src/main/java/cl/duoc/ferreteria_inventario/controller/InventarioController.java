@@ -49,7 +49,8 @@ public class InventarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.registrarProducto(request));
     }
 
-    @Operation(summary = "Registrar entrada, salida o ajuste de stock (ADMIN)")
+    @Operation(summary = "Registrar entrada, salida o ajuste de stock (ADMIN)",
+            description = "ENTRADA y SALIDA requieren cantidad positiva. AJUSTE fija un saldo absoluto y admite cero.")
     @PostMapping("/movimientos")
     public InventarioItem registrarMovimiento(@Valid @RequestBody MovimientoRequest request) {
         return service.registrarMovimiento(request);

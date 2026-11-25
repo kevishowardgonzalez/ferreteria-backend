@@ -51,7 +51,7 @@ class ProductosHttpTests {
                 {"nombre":"Martillo QA","categoria":"Manual QA","precio":8990.50,"stock":7,"descripcion":"Prueba"}
                 """;
         var creado = mvc.perform(post(base).contentType("application/json").content(producto))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.stock").value(7)).andReturn();
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.stock").value(0)).andReturn();
         long id = json.readTree(creado.getResponse().getContentAsString()).get("id").asLong();
         mvc.perform(get(base).param("filtro", "manual qa")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(id));
@@ -60,14 +60,16 @@ class ProductosHttpTests {
         mvc.perform(get(base + "/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.precio").value(8990.50));
         mvc.perform(put(base + "/" + id).contentType("application/json").content(producto.replace("8990.50", "10000.25")))
                 .andExpect(status().isOk());
-        mvc.perform(get(base + "/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.precio").value(10000.25));
+        mvc.perform(get(base + "/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.precio").value(10000.25))
+                .andExpect(jsonPath("$.stock").value(0));
         mvc.perform(post(base).contentType("application/json").content(producto.replace("8990.50", "1.001")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errores.precio").exists());
         mvc.perform(post(base).contentType("application/json").content(producto.replace("\"stock\":7", "\"stock\":-1")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errores.stock").exists());
         mvc.perform(delete(base + "/" + id)).andExpect(status().isNoContent());
-        mvc.perform(get(base + "/" + id)).andExpect(status().isNotFound());
-        mvc.perform(put(base + "/" + id).contentType("application/json").content(producto)).andExpect(status().isNotFound());
-        mvc.perform(delete(base + "/" + id)).andExpect(status().isNotFound());
+        mvc.perform(get(base + "/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.retirado").value(true));
+        mvc.perform(get(base).param("filtro", "MARTILLO QA")).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(put(base + "/" + id).contentType("application/json").content(producto)).andExpect(status().isConflict());
+        mvc.perform(delete(base + "/" + id)).andExpect(status().isNoContent());
     }
 }

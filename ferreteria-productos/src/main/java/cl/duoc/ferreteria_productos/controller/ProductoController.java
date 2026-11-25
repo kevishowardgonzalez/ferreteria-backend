@@ -52,7 +52,8 @@ public class ProductoController {
         return ResponseEntity.ok(service.actualizar(id, req));
     }
 
-    @Operation(summary = "Eliminar producto (ADMIN)")
+    @Operation(summary = "Retirar producto del catálogo (ADMIN)",
+        description = "Baja lógica. Se conserva el ID de producto y su historial de inventario.")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {

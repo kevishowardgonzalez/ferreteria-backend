@@ -79,4 +79,33 @@ class InventarioHttpTests {
         mvc.perform(get(detalle)).andExpect(status().isOk()).andExpect(jsonPath("$.stockActual").value(3));
         mvc.perform(get(base + "/producto/78902")).andExpect(status().isNotFound());
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void permiteAjustarACeroYNoRegistraMovimientosRechazados() throws Exception {
+        String base = "/api/v1/inventario";
+        String ficha = """
+                {"productoId":79031,"productoSku":" PROD-79031 ","productoNombre":"QA límites","stockActual":0}
+                """;
+        mvc.perform(post(base).contentType("application/json").content(ficha)).andExpect(status().isCreated());
+        mvc.perform(post(base).contentType("application/json").content(ficha.replace("productoId\":79031", "productoId\":79032")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post(base).contentType("application/json").content(ficha.replace("PROD-79031", "SKU ?")))
+                .andExpect(status().isBadRequest());
+        String movimiento = """
+                {"productoId":79031,"tipo":"AJUSTE","cantidad":2147483647}
+                """;
+        mvc.perform(post(base + "/movimientos").contentType("application/json").content(movimiento))
+                .andExpect(status().isOk());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("AJUSTE", "ENTRADA").replace("2147483647", "1")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("2147483647", "-1"))).andExpect(status().isBadRequest());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("2147483647", "0"))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.stockActual").value(0));
+        mvc.perform(get(base + "/producto/79031/movimientos")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
 }

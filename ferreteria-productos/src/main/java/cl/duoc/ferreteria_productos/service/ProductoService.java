@@ -19,11 +19,12 @@ public class ProductoService {
     }
 
     public List<Producto> listar() {
-        return repository.findAll();
+        return repository.findAll().stream().filter(p -> !Boolean.TRUE.equals(p.getRetirado())).toList();
     }
 
     public List<Producto> buscarPorFiltro(String filtro) {
-        return repository.findByNombreContainingIgnoreCaseOrCategoriaContainingIgnoreCase(filtro.trim(), filtro.trim());
+        return repository.findByNombreContainingIgnoreCaseOrCategoriaContainingIgnoreCase(filtro.trim(), filtro.trim())
+                .stream().filter(p -> !Boolean.TRUE.equals(p.getRetirado())).toList();
     }
 
     public Producto buscar(Long id) {
@@ -37,7 +38,8 @@ public class ProductoService {
         p.setNombre(req.getNombre().trim());
         p.setCategoria(req.getCategoria().trim());
         p.setPrecio(req.getPrecio());
-        p.setStock(req.getStock());
+        p.setStock(0);
+        p.setRetirado(false);
         if (req.getDescripcion() != null) {
             p.setDescripcion(req.getDescripcion().trim());
         }
@@ -45,11 +47,13 @@ public class ProductoService {
     }
 
     public Producto actualizar(Long id, ProductoRequest req) {
-        Producto p = buscar(id); 
+        Producto p = buscar(id);
+        if (Boolean.TRUE.equals(p.getRetirado())) {
+            throw new Mensaje(HttpStatus.CONFLICT, "El producto está retirado del catálogo");
+        }
         p.setNombre(req.getNombre().trim());
         p.setCategoria(req.getCategoria().trim());
         p.setPrecio(req.getPrecio());
-        p.setStock(req.getStock());
         if (req.getDescripcion() != null) {
             p.setDescripcion(req.getDescripcion().trim());
         }
@@ -58,6 +62,7 @@ public class ProductoService {
 
     public void eliminar(Long id) {
         Producto p = buscar(id);
-        repository.delete(p);
+        p.setRetirado(true);
+        repository.save(p);
     }
 }

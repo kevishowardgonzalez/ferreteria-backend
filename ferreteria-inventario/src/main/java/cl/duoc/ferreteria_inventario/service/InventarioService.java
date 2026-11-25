@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 public class InventarioService {
@@ -43,31 +45,51 @@ public class InventarioService {
         if (inventarioRepo.existsByProductoId(req.getProductoId())) {
             throw new ReglaNegocioException("El producto ya está registrado en inventario");
         }
+        String sku = req.getProductoSku().trim().toUpperCase(Locale.ROOT);
+        if (inventarioRepo.existsByProductoSkuIgnoreCase(sku)) {
+            throw new ReglaNegocioException("El SKU ya está registrado en inventario");
+        }
         InventarioItem item = new InventarioItem(
                 null,
                 req.getProductoId(),
-                req.getProductoSku().trim().toUpperCase(),
+                sku,
                 req.getProductoNombre().trim(),
                 req.getStockActual(),
                 req.getStockMinimo() != null ? req.getStockMinimo() : 5,
                 LocalDateTime.now());
-        return inventarioRepo.save(item);
+        try {
+            return inventarioRepo.saveAndFlush(item);
+        } catch (DataIntegrityViolationException error) {
+            if (inventarioRepo.existsByProductoId(req.getProductoId())) {
+                throw new ReglaNegocioException("El producto ya está registrado en inventario");
+            }
+            throw error;
+        }
     }
 
     @Transactional
     public InventarioItem registrarMovimiento(MovimientoRequest req) {
         InventarioItem item = buscarPorProducto(req.getProductoId());
-        String tipo = req.getTipo().trim().toUpperCase();
+        String tipo = req.getTipo().trim().toUpperCase(Locale.ROOT);
+        int cantidad = req.getCantidad();
+        if (cantidad == 0 && ("ENTRADA".equals(tipo) || "SALIDA".equals(tipo))) {
+            throw new ReglaNegocioException("Las entradas y salidas requieren una cantidad positiva");
+        }
 
         switch (tipo) {
-            case "ENTRADA" -> item.setStockActual(item.getStockActual() + req.getCantidad());
+            case "ENTRADA" -> {
+                if (cantidad > Integer.MAX_VALUE - item.getStockActual()) {
+                    throw new ReglaNegocioException("El saldo supera el máximo permitido");
+                }
+                item.setStockActual(item.getStockActual() + cantidad);
+            }
             case "SALIDA" -> {
-                if (item.getStockActual() < req.getCantidad()) {
+                if (item.getStockActual() < cantidad) {
                     throw new ReglaNegocioException("Stock insuficiente. Disponible: " + item.getStockActual());
                 }
-                item.setStockActual(item.getStockActual() - req.getCantidad());
+                item.setStockActual(item.getStockActual() - cantidad);
             }
-            case "AJUSTE" -> item.setStockActual(req.getCantidad());
+            case "AJUSTE" -> item.setStockActual(cantidad);
             default -> throw new ReglaNegocioException("Tipo inválido: use ENTRADA, SALIDA o AJUSTE");
         }
 

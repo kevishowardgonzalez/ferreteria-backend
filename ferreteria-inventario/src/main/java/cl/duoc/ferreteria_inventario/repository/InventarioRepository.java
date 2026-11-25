@@ -9,4 +9,6 @@ public interface InventarioRepository extends JpaRepository<InventarioItem, Long
     Optional<InventarioItem> findByProductoId(Long productoId);
 
     boolean existsByProductoId(Long productoId);
+
+    boolean existsByProductoSkuIgnoreCase(String productoSku);
 }
