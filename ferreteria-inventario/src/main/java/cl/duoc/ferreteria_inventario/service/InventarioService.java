@@ -63,6 +63,9 @@ public class InventarioService {
             if (inventarioRepo.existsByProductoId(req.getProductoId())) {
                 throw new ReglaNegocioException("El producto ya está registrado en inventario");
             }
+            if (inventarioRepo.existsByProductoSkuIgnoreCase(sku)) {
+                throw new ReglaNegocioException("El SKU ya está registrado en inventario");
+            }
             throw error;
         }
     }

@@ -89,7 +89,9 @@ class InventarioHttpTests {
                 """;
         mvc.perform(post(base).contentType("application/json").content(ficha)).andExpect(status().isCreated());
         mvc.perform(post(base).contentType("application/json").content(ficha.replace("productoId\":79031", "productoId\":79032")))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("El SKU ya está registrado en inventario"));
+        mvc.perform(get(base + "/producto/79032")).andExpect(status().isNotFound());
         mvc.perform(post(base).contentType("application/json").content(ficha.replace("PROD-79031", "SKU ?")))
                 .andExpect(status().isBadRequest());
         String movimiento = """
