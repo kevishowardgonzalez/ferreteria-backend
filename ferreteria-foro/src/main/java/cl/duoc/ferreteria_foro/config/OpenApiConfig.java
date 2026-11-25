@@ -1,4 +1,4 @@
-package cl.duoc.ferreteria_auth.config;
+package cl.duoc.ferreteria_foro.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

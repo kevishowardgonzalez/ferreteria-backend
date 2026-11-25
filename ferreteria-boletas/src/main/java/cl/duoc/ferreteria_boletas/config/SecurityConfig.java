@@ -1,4 +1,6 @@
-package cl.duoc.ferreteria_auth.security;
+package cl.duoc.ferreteria_boletas.config;
+
+import cl.duoc.ferreteria_boletas.security.JwtAuthenticationFilter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -50,14 +52,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/boletas").authenticated()
                         .requestMatchers("/api/v1/boletas/**").hasAnyRole("ADMIN", "VENDEDOR")
                         .anyRequest().denyAll())
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/refresh"
-                        ).permitAll()
-                        .anyRequest().denyAll()
-                )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )

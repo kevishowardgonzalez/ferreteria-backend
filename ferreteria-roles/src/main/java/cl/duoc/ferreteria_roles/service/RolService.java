@@ -32,7 +32,7 @@ public class RolService {
         if (repository.existsByNombreIgnoreCase(nombre)) {
             throw new ReglaNegocioException("El rol ya existe: " + nombre);
         }
-        Rol rol = new RolEntity(
+        Rol rol = new Rol(
                 null,
                 nombre,
                 req.getDescripcion().trim(),
@@ -51,7 +51,7 @@ public class RolService {
     }
 
     public void desactivar(Long id) {
-        RolEntity rol = buscar(id);
+        Rol rol = buscar(id);
         rol.setActivo(false);
         repository.save(rol);
     }
