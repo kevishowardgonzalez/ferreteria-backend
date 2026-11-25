@@ -1,4 +1,4 @@
-package cl.duoc.ferreteria_auth.security;
+package cl.duoc.ferreteria_inventario.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

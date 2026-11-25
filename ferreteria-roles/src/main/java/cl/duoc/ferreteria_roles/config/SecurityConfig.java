@@ -53,6 +53,7 @@ public class SecurityConfig {
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
