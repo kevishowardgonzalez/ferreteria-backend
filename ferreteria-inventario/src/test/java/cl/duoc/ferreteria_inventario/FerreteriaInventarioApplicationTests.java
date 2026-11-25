@@ -1,10 +1,10 @@
-package cl.duoc.ferreteria_productos;
+package cl.duoc.ferreteria_inventario;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class FerreteriaAuthApplicationTests {
+class FerreteriaInventarioApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,4 +1,4 @@
-package cl.duoc.ferreteria_auth.security;
+package cl.duoc.ferreteria_inventario.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -13,23 +13,37 @@ import javax.crypto.SecretKey;
 @Service
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
-    private String secret;
+    private final SecretKey key;
+    private final String issuer;
 
-    @Value("${app.jwt.issuer}")
-    private String issuer;
-
-    private SecretKey clave() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    public JwtService(@Value("${app.jwt.secret}") String secret,
+                      @Value("${app.jwt.issuer}") String issuer) {
+        try {
+            this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Configure JWT_SECRET en Base64 con al menos 256 bits.");
+        }
+        if (issuer.isBlank()) {
+            throw new IllegalArgumentException("Configure un emisor JWT no vacio.");
+        }
+        this.issuer = issuer;
     }
 
     public Claims validar(String token) {
-        return Jwts.parser()
-                .verifyWith(clave())
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .requireIssuer(issuer)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        if (claims.getSubject() == null || claims.getSubject().isBlank() || claims.getExpiration() == null) {
+            throw new JwtException("JWT sin identidad o vencimiento.");
+        }
+        String rol = claims.get("rol", String.class);
+        if (!"ADMIN".equals(rol) && !"VENDEDOR".equals(rol) && !"CLIENTE".equals(rol)) {
+            throw new JwtException("Rol JWT invalido.");
+        }
+        return claims;
     }
 
     public boolean esValido(String token) {

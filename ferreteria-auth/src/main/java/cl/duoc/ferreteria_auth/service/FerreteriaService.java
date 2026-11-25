@@ -9,23 +9,27 @@ import cl.duoc.ferreteria_auth.model.Rol;
 import cl.duoc.ferreteria_auth.model.Usuario;
 import cl.duoc.ferreteria_auth.repository.UsuarioRepository;
 import cl.duoc.ferreteria_auth.security.JwtService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
+import java.util.function.Supplier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class FerreteriaService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshSessionService sesiones;
 
-    public FerreteriaService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public FerreteriaService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                            JwtService jwtService, RefreshSessionService sesiones) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.sesiones = sesiones;
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -64,28 +68,35 @@ public class FerreteriaService {
         return construirRespuesta(usuarioRepository.save(nuevo));
     }
 
-    /**
-     * Renovación de token: valida el token recibido, extrae el correo y emite uno nuevo
-     * releyendo el usuario desde la BD.
-     */
+    @Transactional(noRollbackFor = BadCredentialsException.class)
     public AuthResponse refresh(RefreshRequest request) {
-        try {
-            Claims claims = jwtService.validar(request.getToken());
-            String correo = claims.getSubject();
+        String token = request.getRefreshToken();
+        var sesion = sesiones.obtenerVigente(token);
+        Usuario usuario = usuarioRepository.findById(sesion.getUsuarioId())
+                .filter(u -> Boolean.TRUE.equals(u.getActivo()))
+                .orElseThrow(() -> {
+                    sesiones.revocar(sesion);
+                    return new BadCredentialsException("Usuario inactivo");
+                });
+        return construirRespuesta(usuario, () -> sesiones.rotar(sesion, token));
+    }
 
-            Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo)
-                    .orElseThrow(() -> new BadCredentialsException("Usuario no existe"));
-            if (!Boolean.TRUE.equals(usuario.getActivo())) {
-                throw new BadCredentialsException("Usuario desactivado");
-            }
-            return construirRespuesta(usuario);
-        } catch (JwtException | IllegalArgumentException e) {
-            throw new BadCredentialsException("Token inválido o expirado");
-        }
+    public void logout(RefreshRequest request) {
+        sesiones.revocar(request.getRefreshToken());
     }
 
     private AuthResponse construirRespuesta(Usuario u) {
-        return new AuthResponse(jwtService.generarToken(u), u.getId(), u.getNombre(),
-                u.getApellido(), u.getCorreo(), u.getRol());
+        return construirRespuesta(u, () -> sesiones.emitir(u.getId()));
+    }
+
+    private AuthResponse construirRespuesta(Usuario u, Supplier<String> refreshToken) {
+        Rol rol;
+        try {
+            rol = Rol.valueOf(u.getRol());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new BadCredentialsException("Rol invalido");
+        }
+        return new AuthResponse(jwtService.generarToken(u), refreshToken.get(), u.getId(),
+                u.getNombre(), u.getApellido(), u.getCorreo(), rol.name());
     }
 }

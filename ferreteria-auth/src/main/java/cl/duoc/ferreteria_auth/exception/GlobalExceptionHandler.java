@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
       .body(Map.of("error", "Credenciales inválidas"));
   }
 
+  @ExceptionHandler(RenovacionDuplicadaException.class)
+  ResponseEntity<Map<String, String>> renovacionDuplicada() {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+      .body(Map.of("error", "La sesión ya se renovó con esta credencial."));
+  }
+
   // Token alterado, vencido o de otro emisor al intentar renovarlo
   @ExceptionHandler(JwtException.class)
   ResponseEntity<Map<String, String>> tokenInvalido() {

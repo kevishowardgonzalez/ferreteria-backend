@@ -284,6 +284,7 @@ Endpoints principales:
 | POST | `/api/v1/auth/registro` |
 | POST | `/api/v1/auth/login` |
 | POST | `/api/v1/auth/refresh` |
+| POST | `/api/v1/auth/logout` |
 
 ### 7.2. ferreteria-usuarios
 
@@ -433,6 +434,16 @@ Para trabajar con las bases de datos se utilizan Spring Data JPA e Hibernate.
 ---
 
 ## 9. Seguridad y autenticación
+
+### Contrato de sesión
+
+- `POST /api/v1/auth/login` recibe `{correo,password}` y responde `200` con `token`, `refreshToken`, `id`, `nombre`, `apellido`, `correo` y `rol`.
+- `POST /api/v1/auth/register` recibe `{run,nombre,apellido,correo,password}`. Crea un `CLIENTE` y responde `201` con el mismo formato.
+- `POST /api/v1/auth/refresh` recibe `{refreshToken}` en JSON. Responde `200` con un nuevo par y guarda el hash consumido dentro de la misma sesión. Un duplicado dentro de los primeros cinco segundos recibe `409` y debe esperar el resultado de la petición original. Un reuso posterior recibe `401` y revoca el refresh vigente de esa sesión. Si la cuenta está inactiva, Auth revoca la sesión y devuelve `401`.
+- `POST /api/v1/auth/logout` recibe `{refreshToken}` en JSON y responde `204`. Una credencial vigente o consumida puede revocar toda su sesión. Logout y renovación bloquean la misma fila de sesión. Un JWT de acceso emitido sigue sujeto a su vencimiento.
+- Las API protegidas reciben el JWT de acceso en `Authorization: Bearer <token>`. El token opaco de renovación se usa únicamente en Auth.
+
+Configura el mismo `JWT_SECRET` en Base64 (mínimo 256 bits antes de codificar) y el mismo `JWT_ISSUER` en Auth y sus consumidores. `JWT_ISSUER` toma `ferreteria-auth` por defecto. Auth permite configurar `JWT_ACCESS_TTL_MS` (por defecto 15 minutos, 900000 ms) y `JWT_REFRESH_TTL_SECONDS` (por defecto siete días desde que se crea la sesión). Los valores de prueba están limitados a `src/test/resources`. Si se utilizó alguna clave previamente versionada en un despliegue, rótala en todos los servicios y revoca las sesiones de renovación de ese entorno.
 
 Para proteger el sistema se utiliza Spring Security junto con JWT.
 
