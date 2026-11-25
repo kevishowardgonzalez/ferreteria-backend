@@ -43,6 +43,7 @@ public class CategoriaController {
 
     @Operation(summary = "Crear categoría (ADMIN o VENDEDOR)")
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Categoria> crear(@Valid @RequestBody CategoriaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(request));
     }

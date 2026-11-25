@@ -1,6 +1,9 @@
 package cl.duoc.ferreteria_categorias.exception;
 
 import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +23,17 @@ public class GlobalExceptionHandler {
     ResponseEntity<Map<String, String>> reglaNegocio(ReglaNegocioException e) {
         return ResponseEntity.badRequest()
                 .body(Map.of("mensaje", e.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<Map<String, String>> conflicto() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("mensaje", "El nombre de la categoría ya existe o los datos entran en conflicto."));
+    }
+
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    ResponseEntity<Map<String, String>> formatoInvalido() {
+        return ResponseEntity.badRequest().body(Map.of("mensaje", "Formato de datos inválido."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

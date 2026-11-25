@@ -46,7 +46,11 @@ public class CategoriaService {
 
     public Categoria actualizar(Long id, CategoriaRequest req) {
         Categoria cat = buscar(id);
-        cat.setNombre(req.getNombre().trim());
+        String nombre = req.getNombre().trim();
+        if (repository.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
+            throw new ReglaNegocioException("Ya existe una categoría con ese nombre");
+        }
+        cat.setNombre(nombre);
         if (req.getDescripcion() != null) {
             cat.setDescripcion(req.getDescripcion().trim());
         }
