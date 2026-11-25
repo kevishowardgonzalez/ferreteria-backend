@@ -1,12 +1,17 @@
 package cl.duoc.ferreteria_inventario;
 
+import cl.duoc.ferreteria_inventario.client.ProductosClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -14,6 +19,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class InventarioHttpTests {
     @Autowired MockMvc mvc;
+    @MockitoBean ProductosClient productosClient;
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void noPersisteFichaSiNoPuedeValidarElProducto() throws Exception {
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "No se pudo verificar el producto"))
+                .when(productosClient).validarVigencia(79040L);
+        mvc.perform(post("/api/v1/inventario").contentType("application/json").content("""
+                {"productoId":79040,"productoSku":"PROD-79040","productoNombre":"Producto QA","stockActual":5}
+                """)).andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.mensaje").value("No se pudo verificar el producto"));
+        mvc.perform(get("/api/v1/inventario/producto/79040")).andExpect(status().isNotFound());
+    }
 
     @Test
     void visitanteSoloPuedeConsultarExistenciasPorProducto() throws Exception {

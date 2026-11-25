@@ -1,5 +1,6 @@
 package cl.duoc.ferreteria_inventario.service;
 
+import cl.duoc.ferreteria_inventario.client.ProductosClient;
 import cl.duoc.ferreteria_inventario.dto.InventarioRequest;
 import cl.duoc.ferreteria_inventario.dto.MovimientoRequest;
 import cl.duoc.ferreteria_inventario.exception.RecursoNoEncontradoException;
@@ -21,10 +22,13 @@ public class InventarioService {
 
     private final InventarioRepository inventarioRepo;
     private final MovimientoInventarioRepository movimientoRepo;
+    private final ProductosClient productosClient;
 
-    public InventarioService(InventarioRepository inventarioRepo, MovimientoInventarioRepository movimientoRepo) {
+    public InventarioService(InventarioRepository inventarioRepo, MovimientoInventarioRepository movimientoRepo,
+                             ProductosClient productosClient) {
         this.inventarioRepo = inventarioRepo;
         this.movimientoRepo = movimientoRepo;
+        this.productosClient = productosClient;
     }
 
     public List<InventarioItem> listar() {
@@ -49,6 +53,7 @@ public class InventarioService {
         if (inventarioRepo.existsByProductoSkuIgnoreCase(sku)) {
             throw new ReglaNegocioException("El SKU ya está registrado en inventario");
         }
+        productosClient.validarVigencia(req.getProductoId());
         InventarioItem item = new InventarioItem(
                 null,
                 req.getProductoId(),
@@ -72,7 +77,9 @@ public class InventarioService {
 
     @Transactional
     public InventarioItem registrarMovimiento(MovimientoRequest req) {
-        InventarioItem item = buscarPorProducto(req.getProductoId());
+        InventarioItem item = inventarioRepo.findForUpdateByProductoId(req.getProductoId())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Inventario no encontrado para producto: " + req.getProductoId()));
         String tipo = req.getTipo().trim().toUpperCase(Locale.ROOT);
         int cantidad = req.getCantidad();
         if (cantidad == 0 && ("ENTRADA".equals(tipo) || "SALIDA".equals(tipo))) {
