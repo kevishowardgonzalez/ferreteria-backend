@@ -1,12 +1,17 @@
 package cl.duoc.ferreteria_inventario;
 
+import cl.duoc.ferreteria_inventario.client.ProductosClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -14,6 +19,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class InventarioHttpTests {
     @Autowired MockMvc mvc;
+    @MockitoBean ProductosClient productosClient;
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void noPersisteFichaSiNoPuedeValidarElProducto() throws Exception {
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "No se pudo verificar el producto"))
+                .when(productosClient).validarVigencia(79040L);
+        mvc.perform(post("/api/v1/inventario").contentType("application/json").content("""
+                {"productoId":79040,"productoSku":"PROD-79040","productoNombre":"Producto QA","stockActual":5}
+                """)).andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.mensaje").value("No se pudo verificar el producto"));
+        mvc.perform(get("/api/v1/inventario/producto/79040")).andExpect(status().isNotFound());
+    }
 
     @Test
     void visitanteSoloPuedeConsultarExistenciasPorProducto() throws Exception {
@@ -78,5 +96,36 @@ class InventarioHttpTests {
                 .andExpect(jsonPath("$.length()").value(3));
         mvc.perform(get(detalle)).andExpect(status().isOk()).andExpect(jsonPath("$.stockActual").value(3));
         mvc.perform(get(base + "/producto/78902")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void permiteAjustarACeroYNoRegistraMovimientosRechazados() throws Exception {
+        String base = "/api/v1/inventario";
+        String ficha = """
+                {"productoId":79031,"productoSku":" PROD-79031 ","productoNombre":"QA límites","stockActual":0}
+                """;
+        mvc.perform(post(base).contentType("application/json").content(ficha)).andExpect(status().isCreated());
+        mvc.perform(post(base).contentType("application/json").content(ficha.replace("productoId\":79031", "productoId\":79032")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("El SKU ya está registrado en inventario"));
+        mvc.perform(get(base + "/producto/79032")).andExpect(status().isNotFound());
+        mvc.perform(post(base).contentType("application/json").content(ficha.replace("PROD-79031", "SKU ?")))
+                .andExpect(status().isBadRequest());
+        String movimiento = """
+                {"productoId":79031,"tipo":"AJUSTE","cantidad":2147483647}
+                """;
+        mvc.perform(post(base + "/movimientos").contentType("application/json").content(movimiento))
+                .andExpect(status().isOk());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("AJUSTE", "ENTRADA").replace("2147483647", "1")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("2147483647", "-1"))).andExpect(status().isBadRequest());
+        mvc.perform(post(base + "/movimientos").contentType("application/json")
+                .content(movimiento.replace("2147483647", "0"))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.stockActual").value(0));
+        mvc.perform(get(base + "/producto/79031/movimientos")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
     }
 }

@@ -4,7 +4,7 @@ Sistema web de una ferretería que permite gestionar productos, categorías, usu
 
 **Desarrollo Fullstack II (DSY1104) | Ingeniería en Informática | Duoc UC**
 
-![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?logo=springboot&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
@@ -83,8 +83,7 @@ flowchart TD
     J --> DJ[(BD ferreteria_contacto)]
     K --> DK[(BD ferreteria_foro)]
 
-    H -. Consulta productos .-> E
-    H -. Actualiza existencias .-> G
+    G -->|Valida producto al registrar ficha| E
 ```
 
 ### Características principales
@@ -129,8 +128,8 @@ El backend cuenta con los siguientes 10 servicios:
 
 ### Backend
 
-- Java 17 o superior.
-- Spring Boot.
+- Java 21.
+- Spring Boot 4.1.2.
 - Spring Web.
 - Spring Data JPA.
 - Hibernate.
@@ -511,7 +510,7 @@ Authorization: Bearer <token>
 
 Antes de ejecutar el proyecto se necesita tener instalado:
 
-- Java JDK 17 o superior.
+- Java JDK 21.
 - MySQL o MariaDB.
 - Git.
 - Maven.
@@ -565,9 +564,10 @@ Cada microservicio necesita sus datos de conexión y configuración.
 | `DB_URL` | Dirección de la base de datos. |
 | `DB_USER` | Usuario de MySQL o MariaDB. |
 | `DB_PASSWORD` | Contraseña de la base de datos. |
-| `JWT_SECRET` | Clave utilizada para firmar los tokens. |
-| `JWT_ISSUER` | Nombre del emisor del token. |
+| `JWT_SECRET` | Clave compartida por Auth y sus nueve consumidores, en Base64 con al menos 32 bytes aleatorios antes de codificar. Inyectarla mediante el entorno de cada proceso. |
+| `JWT_ISSUER` | Emisor compartido por los diez procesos. El valor predeterminado es `ferreteria-auth`. |
 | `APP_CORS_ALLOWED_ORIGIN` | Dirección permitida del frontend. |
+| `PRODUCTOS_API_URL` | Solo en Inventario. URL base de Productos, sin `/api/productos`. Predeterminada `http://localhost:8085`. |
 
 **Ejemplo para Windows CMD:**
 
@@ -616,6 +616,49 @@ mvnw.cmd clean package
 ```
 
 Los archivos generados se guardan dentro de la carpeta `target` de cada microservicio.
+
+Usa una base MySQL por servicio y configura `DB_URL` por proceso si sobrescribes la
+dirección local. Para probar el catálogo y el panel de Inventario inicia Auth,
+Categorías, Productos e Inventario con el mismo emisor y material de firma.
+Genera el secreto fuera del repositorio (por ejemplo, con `openssl rand -base64 32`)
+y guárdalo en el entorno de ejecución. Si un valor antiguo se usó en un entorno
+desplegado, rótalo coordinadamente en los diez procesos.
+
+### 10.6. API y permisos de Inventario
+
+Rutas relativas a `/api/v1/inventario` (puerto 8086).
+
+| Método y ruta | ADMIN | VENDEDOR | CLIENTE | Visitante |
+|---|---|---|---|---|
+| GET `/` (sin barra final en la URL) | Sí | Sí | 403 | 401 |
+| GET `/producto/{productoId}` | Sí | Sí | Sí | Sí |
+| GET `/producto/{productoId}/movimientos` | Sí | 403 | 403 | 401 |
+| POST al prefijo base | Sí | 403 | 403 | 401 |
+| POST `/movimientos` | Sí | 403 | 403 | 401 |
+
+El alta recibe `productoId`, `productoSku`, `productoNombre`, `stockActual` y
+`stockMinimo` opcional (5 por defecto). Responde 201, 400 para datos inválidos
+o duplicados, 404 si no existe el producto, 409 si está retirado, 502 si Productos
+responde con datos inválidos y 503 si el servicio no está disponible.
+Un movimiento recibe `productoId`, `tipo`, `cantidad` y
+`motivo` opcional. ENTRADA y SALIDA requieren una cantidad positiva. AJUSTE
+establece un saldo absoluto y admite cero. El éxito devuelve 200 con la ficha.
+
+`InventarioItem.stockActual` es la fuente oficial de existencias.
+`Producto.stock` es un atributo legado. La baja lógica conserva las fichas
+y el historial. El registro de nuevos productos desde React coordina dos
+solicitudes independientes y permite recuperar fichas pendientes.
+
+El equipo autorizó dos técnicas adicionales a las guías revisadas. Inventario
+usa bloqueo pesimista JPA por ficha para actualizar saldo e historial en una
+transacción local, y usa `RestClient` de Spring para consultar el GET público
+de Productos antes del alta. La consulta no forma una transacción distribuida.
+Un producto podría retirarse entre la consulta y el alta, y conservaría su
+identificador por la baja lógica.
+
+Para bases existentes, aplica el [procedimiento de unicidad de SKU](docs/inventario-sku-unico.md)
+antes de habilitar escrituras. El próximo trabajo corresponde a carrito,
+compras y boletas, incluido el descuento de existencias al confirmar una compra.
 
 ---
 
@@ -667,25 +710,25 @@ Para comunicarse con el backend utiliza solicitudes HTTP mediante `fetch` o `axi
 Las direcciones de los microservicios se configuran mediante variables de entorno:
 
 ```env
-VITE_AUTH_API_URL=http://localhost:8081/api
+VITE_AUTH_API_URL=http://localhost:8081
 
-VITE_USUARIOS_API_URL=http://localhost:8082/api/v1/usuarios
+VITE_USUARIOS_API_URL=http://localhost:8082
 
-VITE_ROLES_API_URL=http://localhost:8083/api/v1/roles
+VITE_ROLES_API_URL=http://localhost:8083
 
-VITE_CATEGORIAS_API_URL=http://localhost:8084/api/v1/categorias
+VITE_CATEGORIAS_API_URL=http://localhost:8084
 
-VITE_PRODUCTOS_API_URL=http://localhost:8085/api/productos
+VITE_PRODUCTOS_API_URL=http://localhost:8085
 
-VITE_INVENTARIO_API_URL=http://localhost:8086/api/v1/inventario
+VITE_INVENTARIO_API_URL=http://localhost:8086
 
-VITE_BOLETAS_API_URL=http://localhost:8087/api/v1/boletas
+VITE_BOLETAS_API_URL=http://localhost:8087
 
-VITE_CARRITO_API_URL=http://localhost:8088/api/v1/carrito
+VITE_CARRITO_API_URL=http://localhost:8088
 
-VITE_CONTACTO_API_URL=http://localhost:8089/api/v1/contacto
+VITE_CONTACTO_API_URL=http://localhost:8089
 
-VITE_FORO_API_URL=http://localhost:8090/api/v1/foro
+VITE_FORO_API_URL=http://localhost:8090
 ```
 
 ---

@@ -26,8 +26,8 @@ public class ProductoRequest {
     @Digits(integer = 12, fraction = 2)
     private BigDecimal precio;
 
-    @NotNull(message = "El stock es obligatorio")
     @Min(value = 0, message = "El stock no puede ser negativo")
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Campo legado. Inventario administra las existencias.")
     private Integer stock;
 
     @Size(max = 1000)

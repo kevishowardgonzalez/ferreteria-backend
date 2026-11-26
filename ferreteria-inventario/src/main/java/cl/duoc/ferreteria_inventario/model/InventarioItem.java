@@ -21,7 +21,7 @@ public class InventarioItem {
     @Column(name = "producto_id", unique = true, nullable = false)
     private Long productoId;
 
-    @Column(name = "producto_sku", nullable = false, length = 40)
+    @Column(name = "producto_sku", unique = true, nullable = false, length = 40)
     private String productoSku;
 
     @Column(name = "producto_nombre", nullable = false, length = 120)
